@@ -1,0 +1,28 @@
+// Copyright Neeva. All rights reserved.
+
+#ifndef WEBLAYER_RENDERER_NEEVA_NEEVA_CONTENT_FILTER_H__
+#define WEBLAYER_RENDERER_NEEVA_NEEVA_CONTENT_FILTER_H__
+
+#include "third_party/blink/public/common/loader/url_loader_throttle.h"
+#include "weblayer/renderer/neeva/content_filtering_agent.h"
+
+namespace weblayer {
+namespace neeva {
+
+class ContentFilter : public blink::URLLoaderThrottle {
+ public:
+  ~ContentFilter() override;
+  explicit ContentFilter(const ContentFilteringAgent& agent, int render_frame_id);
+
+  // blink::URLLoaderThrottle overrides:
+  void WillStartRequest(network::ResourceRequest* request, bool* defer) override;
+
+ private:
+  ContentFilteringAgent agent_;
+  int render_frame_id_;
+};
+
+}  // namespace neeva
+}  // namespace weblayer
+
+#endif  // WEBLAYER_RENDERER_NEEVA_NEEVA_CONTENT_FILTER_H__

@@ -1,0 +1,7 @@
+// Copyright Neeva. All rights reserved.
+
+module weblayer.neeva.mojom;
+
+interface ContentFilteringService {
+  Log(string message);
+};

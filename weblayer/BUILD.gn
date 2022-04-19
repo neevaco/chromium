@@ -131,6 +131,7 @@ mojom("common_mojom") {
 
   sources = [
     "common/error_page_helper.mojom",
+    "common/neeva/content_filtering_service.mojom",
     "common/renderer_configuration.mojom",
   ]
   deps = [
@@ -374,6 +375,10 @@ source_set("weblayer_lib_base") {
     "renderer/content_renderer_client_impl.h",
     "renderer/error_page_helper.cc",
     "renderer/error_page_helper.h",
+    "renderer/neeva/content_filter.cc",
+    "renderer/neeva/content_filter.h",
+    "renderer/neeva/content_filtering_agent.cc",
+    "renderer/neeva/content_filtering_agent.h",
     "renderer/url_loader_throttle_provider.cc",
     "renderer/url_loader_throttle_provider.h",
     "renderer/weblayer_render_frame_observer.cc",

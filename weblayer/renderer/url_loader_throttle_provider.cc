@@ -17,14 +17,16 @@ namespace weblayer {
 URLLoaderThrottleProvider::URLLoaderThrottleProvider(
     blink::ThreadSafeBrowserInterfaceBrokerProxy* broker,
     blink::URLLoaderThrottleProviderType type)
-    : type_(type) {
+    : type_(type),
+      neeva_content_filtering_agent_(broker) {
   DETACH_FROM_THREAD(thread_checker_);
   broker->GetInterface(safe_browsing_remote_.InitWithNewPipeAndPassReceiver());
 }
 
 URLLoaderThrottleProvider::URLLoaderThrottleProvider(
     const URLLoaderThrottleProvider& other)
-    : type_(other.type_) {
+    : type_(other.type_),
+      neeva_content_filtering_agent_(other.neeva_content_filtering_agent_) {
   DETACH_FROM_THREAD(thread_checker_);
   if (other.safe_browsing_) {
     other.safe_browsing_->Clone(
@@ -73,6 +75,8 @@ URLLoaderThrottleProvider::CreateThrottles(
     if (throttle)
       throttles.emplace_back(std::move(throttle));
   }
+
+  throttles.emplace_back(neeva_content_filtering_agent_.CreateThrottle(render_frame_id));
 
   return throttles;
 }

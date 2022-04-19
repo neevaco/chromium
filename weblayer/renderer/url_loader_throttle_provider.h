@@ -11,6 +11,7 @@
 #include "mojo/public/cpp/bindings/remote.h"
 #include "third_party/blink/public/common/thread_safe_browser_interface_broker_proxy.h"
 #include "third_party/blink/public/platform/url_loader_throttle_provider.h"
+#include "weblayer/renderer/neeva/content_filtering_agent.h"
 
 namespace weblayer {
 
@@ -43,6 +44,8 @@ class URLLoaderThrottleProvider : public blink::URLLoaderThrottleProvider {
 
   mojo::PendingRemote<safe_browsing::mojom::SafeBrowsing> safe_browsing_remote_;
   mojo::Remote<safe_browsing::mojom::SafeBrowsing> safe_browsing_;
+
+  neeva::ContentFilteringAgent neeva_content_filtering_agent_;
 
   THREAD_CHECKER(thread_checker_);
 };
