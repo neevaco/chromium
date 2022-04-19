@@ -96,6 +96,7 @@
 #include "weblayer/browser/navigation_controller_impl.h"
 #include "weblayer/browser/navigation_error_navigation_throttle.h"
 #include "weblayer/browser/navigation_ui_data_impl.h"
+#include "weblayer/browser/neeva/content_filtering_service.h"
 #include "weblayer/browser/no_state_prefetch/no_state_prefetch_manager_factory.h"
 #include "weblayer/browser/no_state_prefetch/no_state_prefetch_utils.h"
 #include "weblayer/browser/page_specific_content_settings_delegate.h"
@@ -943,6 +944,8 @@ void ContentBrowserClientImpl::ExposeInterfacesToRenderer(
       IsSafebrowsingSupported()) {
     GetSafeBrowsingService()->AddInterface(registry, render_process_host);
   }
+
+  neeva::ContentFilteringService::AddInterface(registry);
 #endif  // BUILDFLAG(IS_ANDROID)
 }
 
