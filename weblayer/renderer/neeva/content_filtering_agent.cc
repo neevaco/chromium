@@ -9,53 +9,39 @@
 namespace weblayer {
 namespace neeva {
 
-ContentFilteringAgent::SharedState::SharedState(
-    blink::ThreadSafeBrowserInterfaceBrokerProxy* broker) 
+ContentFilteringAgent::ContentFilteringAgent(
+    blink::ThreadSafeBrowserInterfaceBrokerProxy* broker)
     : task_runner_(base::SequencedTaskRunnerHandle::Get()) {
   broker->GetInterface(service_.BindNewPipeAndPassReceiver());
 }
 
-void ContentFilteringAgent::SharedState::DeleteOnCorrectThread() const {
-  if (!task_runner_->RunsTasksInCurrentSequence()) {
-    // NOTE: This is only called when there are no more references to
-    // |this|, so binding it unretained is both safe and necessary.
-    task_runner_->PostTask(
-        FROM_HERE, base::BindOnce(&SharedState::DeleteOnCorrectThread,
-                                  base::Unretained(this)));
-  } else {
-    delete this;
-  }
+std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
+    int render_frame_id, const blink::WebURLRequest& request) {
+  return std::make_unique<ContentFilter>(
+      base::WrapRefCounted(this), render_frame_id, request);
 }
 
-void ContentFilteringAgent::SharedState::Log(const std::string& message) {
+void ContentFilteringAgent::Log(const std::string& message) {
   if (task_runner_->RunsTasksInCurrentSequence()) {
     service_->Log(message);
   } else {
     task_runner_->PostTask(
-        FROM_HERE, base::BindOnce(&SharedState::Log, this, message));
+        FROM_HERE, base::BindOnce(&ContentFilteringAgent::Log, this, message));
   }
 }
 
-ContentFilteringAgent::SharedState::~SharedState() = default;
-
 ContentFilteringAgent::~ContentFilteringAgent() = default;
 
-ContentFilteringAgent::ContentFilteringAgent(blink::ThreadSafeBrowserInterfaceBrokerProxy* broker)
-  : shared_state_(base::MakeRefCounted<SharedState>(broker)) {
-}
-
-ContentFilteringAgent::ContentFilteringAgent(const ContentFilteringAgent& other) = default;
-ContentFilteringAgent::ContentFilteringAgent(ContentFilteringAgent&& other) = default;
-ContentFilteringAgent& ContentFilteringAgent::operator=(const ContentFilteringAgent& other) = default;
-ContentFilteringAgent& ContentFilteringAgent::operator=(ContentFilteringAgent&& other) = default;
-
-std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
-    int render_frame_id, const blink::WebURLRequest& request) {
-  return std::make_unique<ContentFilter>(*this, render_frame_id, request);
-}
-
-void ContentFilteringAgent::Log(const std::string& message) {
-  shared_state_->Log(message);
+void ContentFilteringAgent::DeleteOnCorrectThread() const {
+  if (!task_runner_->RunsTasksInCurrentSequence()) {
+    // NOTE: This is only called when there are no more references to
+    // |this|, so binding it unretained is both safe and necessary.
+    task_runner_->PostTask(
+        FROM_HERE, base::BindOnce(&ContentFilteringAgent::DeleteOnCorrectThread,
+                                  base::Unretained(this)));
+  } else {
+    delete this;
+  }
 }
 
 }  // namespace neeva

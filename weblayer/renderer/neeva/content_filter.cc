@@ -13,15 +13,15 @@ namespace neeva {
 ContentFilter::~ContentFilter() = default;
 
 ContentFilter::ContentFilter(
-    const ContentFilteringAgent& agent, int render_frame_id,
+    scoped_refptr<ContentFilteringAgent> agent, int render_frame_id,
     const blink::WebURLRequest& request)
-    : agent_(agent), render_frame_id_(render_frame_id) {
+    : agent_(std::move(agent)), render_frame_id_(render_frame_id) {
   std::string top_frame_origin_string;
   auto top_frame_origin = request.TopFrameOrigin();
   if (top_frame_origin) {
     top_frame_origin_string = top_frame_origin->ToString().Utf8();
   }
-  agent_.Log(
+  agent_->Log(
       base::StringPrintf("Created ContentFilter: render_frame_id=%d [top_origin=%s]", render_frame_id, top_frame_origin_string.c_str()));
 }
 
@@ -33,7 +33,7 @@ void ContentFilter::WillStartRequest(
 
   //LOG(ERROR) << ">>> neeva::ContentFilter::WillStartRequest [" << request->url.spec() << "], destination=" << request->destination;
 
-  agent_.Log(
+  agent_->Log(
       base::StringPrintf("WillStartRequest: [%s] dest=%d",
           request->url.spec().c_str(), request->destination));
 

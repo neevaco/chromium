@@ -2,6 +2,41 @@
 
 module weblayer.neeva.mojom;
 
+enum ContentFilterMode {
+  BLOCK_COOKIES,
+  BLOCK_REQUESTS
+};
+
+struct ContentFilterRules {
+  // TODO: Add more fields, including blocking rules
+
+  ContentFilterMode mode; 
+  array<string> top_level_host_exclusions;
+};
+
+struct ContentFilterStats {
+  // TODO: Add more fields
+
+  string top_level_host;
+  int32 num_cookies_blocked;
+  int32 num_loads_blocked;
+};
+
 interface ContentFilteringService {
   Log(string message);
+
+  // Fetching rules:
+  // - On startup, child processes call RefreshRules passing a `current_sequence_num`
+  //   of `0`, indicating that it has no rules currently.
+  // - Upon receiving new rules, child processes will immediately call `RefreshRules`
+  //   again this time passing the value of `new_sequence_num` that they received.
+  //   The service will respond only when it has new rules to provide.
+  RefreshRules(int64 current_sequence_num) =>
+      (int64 new_sequence_num, ContentFilterRules rules);
+
+  // When a child process filters content, it calls OnContentFiltered to let the
+  // service know about it. `render_frame_id` identifies the frame in which content
+  // was blocked and `stats` indicates what was blocked. (The service can map the
+  // render_frame_id to the corresponding tab.)
+  OnContentFiltered(int32 render_frame_id, ContentFilterStats stats);
 };

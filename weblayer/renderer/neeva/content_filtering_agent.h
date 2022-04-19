@@ -16,15 +16,13 @@ class WebURLRequest;
 namespace weblayer {
 namespace neeva {
 
-class ContentFilteringAgent {
- public:
-  ~ContentFilteringAgent();
-  explicit ContentFilteringAgent(blink::ThreadSafeBrowserInterfaceBrokerProxy* broker);
+struct ContentFilteringAgentDeleter;
 
-  ContentFilteringAgent(const ContentFilteringAgent& other);
-  ContentFilteringAgent(ContentFilteringAgent&& other);
-  ContentFilteringAgent& operator=(const ContentFilteringAgent& other);
-  ContentFilteringAgent& operator=(ContentFilteringAgent&& other);
+class ContentFilteringAgent
+    : public base::RefCountedThreadSafe<ContentFilteringAgent,
+                                        ContentFilteringAgentDeleter> {
+ public:
+  explicit ContentFilteringAgent(blink::ThreadSafeBrowserInterfaceBrokerProxy* broker);
 
   std::unique_ptr<blink::URLLoaderThrottle> CreateThrottle(
       int render_frame_id, const blink::WebURLRequest& request);
@@ -32,27 +30,19 @@ class ContentFilteringAgent {
   void Log(const std::string& message);
 
  private:
-  struct SharedStateDeleter;
+  friend struct ContentFilteringAgentDeleter;
 
-  class SharedState : public base::RefCountedThreadSafe<SharedState, SharedStateDeleter> {
-   public:
-    explicit SharedState(blink::ThreadSafeBrowserInterfaceBrokerProxy* broker);
-    void DeleteOnCorrectThread() const;
-    void Log(const std::string& message);
-   private:
-    friend struct Deleter;
-    ~SharedState();
-    scoped_refptr<base::SequencedTaskRunner> task_runner_;
-    mojo::Remote<mojom::ContentFilteringService> service_;
-  };
+  ~ContentFilteringAgent();
+  void DeleteOnCorrectThread() const;
 
-  struct SharedStateDeleter {
-    static void Destruct(const SharedState* shared_state) {
-      shared_state->DeleteOnCorrectThread();
-    }
-  };
+  scoped_refptr<base::SequencedTaskRunner> task_runner_;
+  mojo::Remote<mojom::ContentFilteringService> service_;
+};
 
-  scoped_refptr<SharedState> shared_state_;
+struct ContentFilteringAgentDeleter {
+  static void Destruct(const ContentFilteringAgent* agent) {
+    agent->DeleteOnCorrectThread();
+  }
 };
 
 }  // namespace neeva

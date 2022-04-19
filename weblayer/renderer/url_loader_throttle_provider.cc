@@ -18,7 +18,8 @@ URLLoaderThrottleProvider::URLLoaderThrottleProvider(
     blink::ThreadSafeBrowserInterfaceBrokerProxy* broker,
     blink::URLLoaderThrottleProviderType type)
     : type_(type),
-      neeva_content_filtering_agent_(broker) {
+      neeva_content_filtering_agent_(
+          base::MakeRefCounted<neeva::ContentFilteringAgent>(broker)) {
   DETACH_FROM_THREAD(thread_checker_);
   broker->GetInterface(safe_browsing_remote_.InitWithNewPipeAndPassReceiver());
 }
@@ -76,7 +77,7 @@ URLLoaderThrottleProvider::CreateThrottles(
       throttles.emplace_back(std::move(throttle));
   }
 
-  throttles.emplace_back(neeva_content_filtering_agent_.CreateThrottle(render_frame_id, request));
+  throttles.emplace_back(neeva_content_filtering_agent_->CreateThrottle(render_frame_id, request));
 
   return throttles;
 }

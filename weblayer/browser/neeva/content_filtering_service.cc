@@ -29,5 +29,15 @@ void ContentFilteringService::Log(const std::string& message) {
   LOG(ERROR) << ">>> " << message;
 }
 
+void ContentFilteringService::RefreshRules(
+    int64_t current_sequence_num, RefreshRulesCallback callback) {
+  // TODO: implement me!
+}
+
+void ContentFilteringService::OnContentFiltered(
+    int32_t render_frame_id, mojom::ContentFilterStatsPtr stats) {
+  // TODO: implement me!
+}
+
 }  // namespace neeva
 }  // namespace weblayer

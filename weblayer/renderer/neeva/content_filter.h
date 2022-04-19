@@ -16,13 +16,13 @@ namespace neeva {
 class ContentFilter : public blink::URLLoaderThrottle {
  public:
   ~ContentFilter() override;
-  ContentFilter(const ContentFilteringAgent& agent, int render_frame_id, const blink::WebURLRequest& request);
+  ContentFilter(scoped_refptr<ContentFilteringAgent> agent, int render_frame_id, const blink::WebURLRequest& request);
 
   // blink::URLLoaderThrottle overrides:
   void WillStartRequest(network::ResourceRequest* request, bool* defer) override;
 
  private:
-  ContentFilteringAgent agent_;
+  scoped_refptr<ContentFilteringAgent> agent_;
   int render_frame_id_;
 };
 
