@@ -10,6 +10,7 @@
 namespace blink {
 class ThreadSafeBrowserInterfaceBrokerProxy;
 class URLLoaderThrottle;
+class WebURLRequest;
 }
 
 namespace weblayer {
@@ -25,7 +26,8 @@ class ContentFilteringAgent {
   ContentFilteringAgent& operator=(const ContentFilteringAgent& other);
   ContentFilteringAgent& operator=(ContentFilteringAgent&& other);
 
-  std::unique_ptr<blink::URLLoaderThrottle> CreateThrottle(int render_frame_id);
+  std::unique_ptr<blink::URLLoaderThrottle> CreateThrottle(
+      int render_frame_id, const blink::WebURLRequest& request);
 
   void Log(const std::string& message);
 

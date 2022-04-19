@@ -76,7 +76,7 @@ URLLoaderThrottleProvider::CreateThrottles(
       throttles.emplace_back(std::move(throttle));
   }
 
-  throttles.emplace_back(neeva_content_filtering_agent_.CreateThrottle(render_frame_id));
+  throttles.emplace_back(neeva_content_filtering_agent_.CreateThrottle(render_frame_id, request));
 
   return throttles;
 }

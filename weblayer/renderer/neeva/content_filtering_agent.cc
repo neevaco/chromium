@@ -49,8 +49,9 @@ ContentFilteringAgent::ContentFilteringAgent(ContentFilteringAgent&& other) = de
 ContentFilteringAgent& ContentFilteringAgent::operator=(const ContentFilteringAgent& other) = default;
 ContentFilteringAgent& ContentFilteringAgent::operator=(ContentFilteringAgent&& other) = default;
 
-std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(int render_frame_id) {
-  return std::make_unique<ContentFilter>(*this, render_frame_id);
+std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
+    int render_frame_id, const blink::WebURLRequest& request) {
+  return std::make_unique<ContentFilter>(*this, render_frame_id, request);
 }
 
 void ContentFilteringAgent::Log(const std::string& message) {
