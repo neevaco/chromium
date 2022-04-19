@@ -1,7 +1,7 @@
 // Copyright Neeva. All rights reserved.
 
-#ifndef WEBLAYER_RENDERER_NEEVA_NEEVA_CONTENT_FILTERING_AGENT_H__
-#define WEBLAYER_RENDERER_NEEVA_NEEVA_CONTENT_FILTERING_AGENT_H__
+#ifndef WEBLAYER_RENDERER_NEEVA_CONTENT_FILTERING_AGENT_H__
+#define WEBLAYER_RENDERER_NEEVA_CONTENT_FILTERING_AGENT_H__
 
 #include "base/memory/ref_counted.h"
 #include "mojo/public/cpp/bindings/remote.h"
@@ -58,4 +58,4 @@ struct ContentFilteringAgentDeleter {
 }  // namespace neeva
 }  // namespace weblayer
 
-#endif  // WEBLAYER_RENDERER_NEEVA_NEEVA_CONTENT_FILTERING_AGENT_H__
+#endif  // WEBLAYER_RENDERER_NEEVA_CONTENT_FILTERING_AGENT_H__

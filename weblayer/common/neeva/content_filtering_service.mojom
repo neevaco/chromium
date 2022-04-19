@@ -10,7 +10,7 @@ enum ContentFilterMode {
 struct ContentFilterRules {
   // TODO: Add more fields, including blocking rules
 
-  ContentFilterMode mode; 
+  ContentFilterMode mode;
   array<string> top_level_host_exclusions;
 };
 
