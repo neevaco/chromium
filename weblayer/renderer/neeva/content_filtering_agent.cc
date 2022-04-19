@@ -13,6 +13,7 @@ ContentFilteringAgent::ContentFilteringAgent(
     blink::ThreadSafeBrowserInterfaceBrokerProxy* broker)
     : task_runner_(base::SequencedTaskRunnerHandle::Get()) {
   broker->GetInterface(service_.BindNewPipeAndPassReceiver());
+  RefreshRules();
 }
 
 std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
@@ -42,6 +43,20 @@ void ContentFilteringAgent::DeleteOnCorrectThread() const {
   } else {
     delete this;
   }
+}
+
+void ContentFilteringAgent::RefreshRules() {
+  service_->RefreshRules(
+      current_generation_num_,
+      base::BindOnce(&ContentFilteringAgent::OnApplyNewRules, this));
+}
+
+void ContentFilteringAgent::OnApplyNewRules(
+    int64_t new_generation_num, mojom::ContentFilterRulesPtr new_rules) {
+  current_generation_num_ = new_generation_num;
+  rules_ = std::move(new_rules);
+  // TODO: Perform any other one-time setup for rules.
+  RefreshRules();
 }
 
 }  // namespace neeva

@@ -26,13 +26,13 @@ interface ContentFilteringService {
   Log(string message);
 
   // Fetching rules:
-  // - On startup, child processes call RefreshRules passing a `current_sequence_num`
+  // - On startup, child processes call RefreshRules passing a `current_generation_num`
   //   of `0`, indicating that it has no rules currently.
   // - Upon receiving new rules, child processes will immediately call `RefreshRules`
-  //   again this time passing the value of `new_sequence_num` that they received.
+  //   again this time passing the value of `new_generation_num` that they received.
   //   The service will respond only when it has new rules to provide.
-  RefreshRules(int64 current_sequence_num) =>
-      (int64 new_sequence_num, ContentFilterRules rules);
+  RefreshRules(int64 current_generation_num) =>
+      (int64 new_generation_num, ContentFilterRules rules);
 
   // When a child process filters content, it calls OnContentFiltered to let the
   // service know about it. `render_frame_id` identifies the frame in which content

@@ -31,8 +31,6 @@ void ContentFilter::WillStartRequest(
 
   *defer = false;
 
-  //LOG(ERROR) << ">>> neeva::ContentFilter::WillStartRequest [" << request->url.spec() << "], destination=" << request->destination;
-
   agent_->Log(
       base::StringPrintf("WillStartRequest: [%s] dest=%d",
           request->url.spec().c_str(), request->destination));

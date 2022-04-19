@@ -22,21 +22,31 @@ class ContentFilteringAgent
     : public base::RefCountedThreadSafe<ContentFilteringAgent,
                                         ContentFilteringAgentDeleter> {
  public:
-  explicit ContentFilteringAgent(blink::ThreadSafeBrowserInterfaceBrokerProxy* broker);
+  explicit ContentFilteringAgent(
+      blink::ThreadSafeBrowserInterfaceBrokerProxy* broker);
 
   std::unique_ptr<blink::URLLoaderThrottle> CreateThrottle(
       int render_frame_id, const blink::WebURLRequest& request);
 
   void Log(const std::string& message);
 
+  // TODO: Add method here to determine policy for a given request.
+  // TODO: Add method to report filtered content.
+  // Both of the above methods could be called on a background thread.
+
  private:
   friend struct ContentFilteringAgentDeleter;
 
   ~ContentFilteringAgent();
   void DeleteOnCorrectThread() const;
+  void RefreshRules();
+  void OnApplyNewRules(
+      int64_t new_generation_num, mojom::ContentFilterRulesPtr new_rules);
 
   scoped_refptr<base::SequencedTaskRunner> task_runner_;
   mojo::Remote<mojom::ContentFilteringService> service_;
+  mojom::ContentFilterRulesPtr rules_;
+  int64_t current_generation_num_ = 0;
 };
 
 struct ContentFilteringAgentDeleter {
