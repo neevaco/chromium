@@ -13,10 +13,22 @@ class URLLoaderThrottle;
 class WebURLRequest;
 }
 
+namespace url {
+class Origin;
+}
+
+class GURL;
+
 namespace weblayer {
 namespace neeva {
 
 struct ContentFilteringAgentDeleter;
+
+enum class ContentFilteringPolicy {
+  kAllow,
+  kBlockCookies,
+  kBlockRequest
+};
 
 class ContentFilteringAgent
     : public base::RefCountedThreadSafe<ContentFilteringAgent,
@@ -30,7 +42,10 @@ class ContentFilteringAgent
 
   void Log(const std::string& message);
 
-  // TODO: Add method here to determine policy for a given request.
+  // TODO: Add other fields for element_type, etc.
+  ContentFilteringPolicy GetPolicyForRequest(
+      const GURL& url, const url::Origin& first_party_origin) const;
+
   // TODO: Add method to report filtered content.
   // Both of the above methods could be called on a background thread.
 

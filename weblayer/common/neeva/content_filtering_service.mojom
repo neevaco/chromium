@@ -12,6 +12,7 @@ struct ContentFilterRules {
 
   ContentFilterMode mode;
   array<string> top_level_host_exclusions;
+  handle<shared_buffer> url_pattern_data;
 };
 
 struct ContentFilterStats {

@@ -3,6 +3,7 @@
 #include "weblayer/renderer/neeva/content_filter.h"
 
 #include "base/strings/stringprintf.h"
+#include "net/base/load_flags.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "third_party/blink/public/platform/web_security_origin.h"
 #include "third_party/blink/public/platform/web_url_request.h"
@@ -16,13 +17,13 @@ ContentFilter::ContentFilter(
     scoped_refptr<ContentFilteringAgent> agent, int render_frame_id,
     const blink::WebURLRequest& request)
     : agent_(std::move(agent)), render_frame_id_(render_frame_id) {
-  std::string top_frame_origin_string;
   auto top_frame_origin = request.TopFrameOrigin();
   if (top_frame_origin) {
-    top_frame_origin_string = top_frame_origin->ToString().Utf8();
+    top_frame_origin_ = *top_frame_origin;
   }
   agent_->Log(
-      base::StringPrintf("Created ContentFilter: render_frame_id=%d [top_origin=%s]", render_frame_id, top_frame_origin_string.c_str()));
+      base::StringPrintf("Created ContentFilter: render_frame_id=%d [top_origin=%s]",
+          render_frame_id, top_frame_origin_.GetURL().spec().c_str()));
 }
 
 void ContentFilter::WillStartRequest(
@@ -34,6 +35,18 @@ void ContentFilter::WillStartRequest(
   agent_->Log(
       base::StringPrintf("WillStartRequest: [%s] dest=%d",
           request->url.spec().c_str(), request->destination));
+
+  switch (agent_->GetPolicyForRequest(request->url, top_frame_origin_)) {
+    case ContentFilteringPolicy::kAllow:
+      break;
+    case ContentFilteringPolicy::kBlockCookies:
+      request->load_flags |= net::LOAD_DO_NOT_SAVE_COOKIES;
+      request->credentials_mode = network::mojom::CredentialsMode::kOmit;
+      break;
+    case ContentFilteringPolicy::kBlockRequest:
+      delegate_->CancelWithError(net::ERR_ABORTED);
+      break;
+  }
 
   /*
   if (request->destination == network::mojom::RequestDestination::kImage) {

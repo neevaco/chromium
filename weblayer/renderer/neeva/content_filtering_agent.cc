@@ -31,6 +31,12 @@ void ContentFilteringAgent::Log(const std::string& message) {
   }
 }
 
+ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
+    const GURL& url, const url::Origin& first_party_origin) const {
+  // TODO: Implement me!
+  return ContentFilteringPolicy::kAllow;
+}
+
 ContentFilteringAgent::~ContentFilteringAgent() = default;
 
 void ContentFilteringAgent::DeleteOnCorrectThread() const {
