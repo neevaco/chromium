@@ -45,16 +45,12 @@ class ContentFilteringAgent
   std::unique_ptr<blink::URLLoaderThrottle> CreateThrottle(
       int render_frame_id, const blink::WebURLRequest& request);
 
+  // The following methods may be called on a background thread.
   void Log(const std::string& message);
   void OnContentFiltered(
       int32_t render_frame_id, mojom::ContentFilterActionPtr action);
-
-  // TODO: Add other fields for element_type, etc.
   ContentFilteringPolicy GetPolicyForRequest(
       const GURL& url, const url::Origin& first_party_origin) const;
-
-  // TODO: Add method to report filtered content.
-  // Both of the above methods could be called on a background thread.
 
  private:
   friend struct ContentFilteringAgentDeleter;
