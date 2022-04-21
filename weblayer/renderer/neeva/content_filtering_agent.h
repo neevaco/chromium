@@ -4,6 +4,7 @@
 #define WEBLAYER_RENDERER_NEEVA_CONTENT_FILTERING_AGENT_H__
 
 #include "base/memory/ref_counted.h"
+#include "base/synchronization/lock.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "weblayer/common/neeva/content_filtering_service.mojom.h"
 
@@ -15,6 +16,10 @@ class WebURLRequest;
 
 namespace url {
 class Origin;
+}
+
+namespace url_pattern_index {
+class UrlPatternIndexMatcher;
 }
 
 class GURL;
@@ -60,8 +65,13 @@ class ContentFilteringAgent
 
   scoped_refptr<base::SequencedTaskRunner> task_runner_;
   mojo::Remote<mojom::ContentFilteringService> service_;
-  mojom::ContentFilterRulesPtr rules_;
   int64_t current_generation_num_ = 0;
+
+  // Acquire |rules_lock_| before accessing any of the following fields.
+  mutable base::Lock rules_lock_;
+  mojom::ContentFilterRulesPtr rules_;
+  std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> matcher_;
+  mojo::ScopedSharedBufferMapping rules_data_mapping_;
 };
 
 struct ContentFilteringAgentDeleter {

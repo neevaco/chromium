@@ -40,6 +40,8 @@ void ContentFilter::WillStartRequest(
     case ContentFilteringPolicy::kAllow:
       break;
     case ContentFilteringPolicy::kBlockCookies:
+      // TODO: Confirm that this actually works at blocking cookies. Do we need
+      // to call RestartWithFlags or does twiddling flags directly here work?
       request->load_flags |= net::LOAD_DO_NOT_SAVE_COOKIES;
       request->credentials_mode = network::mojom::CredentialsMode::kOmit;
       break;
