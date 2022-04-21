@@ -37,7 +37,7 @@ enum class ContentFilteringPolicy {
 
 class ContentFilteringAgent
     : public base::RefCountedThreadSafe<ContentFilteringAgent,
-                                        ContentFilteringAgentDeleter> {
+                                       ContentFilteringAgentDeleter> {
  public:
   explicit ContentFilteringAgent(
       blink::ThreadSafeBrowserInterfaceBrokerProxy* broker);
@@ -46,6 +46,8 @@ class ContentFilteringAgent
       int render_frame_id, const blink::WebURLRequest& request);
 
   void Log(const std::string& message);
+  void OnContentFiltered(
+      int32_t render_frame_id, mojom::ContentFilterActionPtr action);
 
   // TODO: Add other fields for element_type, etc.
   ContentFilteringPolicy GetPolicyForRequest(

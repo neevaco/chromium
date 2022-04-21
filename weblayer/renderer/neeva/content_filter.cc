@@ -21,6 +21,7 @@ ContentFilter::ContentFilter(
   if (top_frame_origin) {
     top_frame_origin_ = *top_frame_origin;
   }
+  // Debug
   agent_->Log(
       base::StringPrintf("Created ContentFilter: render_frame_id=%d [top_origin=%s]",
           render_frame_id, top_frame_origin_.GetURL().spec().c_str()));
@@ -28,17 +29,16 @@ ContentFilter::ContentFilter(
 
 void ContentFilter::WillStartRequest(
     network::ResourceRequest* request, bool* defer) {
-  (void) render_frame_id_;
-
   *defer = false;
 
+  // Debug
   agent_->Log(
       base::StringPrintf("WillStartRequest: [%s] dest=%d",
           request->url.spec().c_str(), request->destination));
 
   switch (agent_->GetPolicyForRequest(request->url, top_frame_origin_)) {
     case ContentFilteringPolicy::kAllow:
-      break;
+      return;
     case ContentFilteringPolicy::kBlockCookies:
       // TODO: Confirm that this actually works at blocking cookies. Do we need
       // to call RestartWithFlags or does twiddling flags directly here work?
@@ -50,13 +50,11 @@ void ContentFilter::WillStartRequest(
       break;
   }
 
-  /*
-  if (request->destination == network::mojom::RequestDestination::kImage) {
-    if (delegate_) {
-      delegate_->CancelWithError(net::ERR_ABORTED);
-    }
-  }
-  */
+  // Report content filtering.
+  mojom::ContentFilterActionPtr action(mojom::ContentFilterAction::New());
+  action->host = request->url.host();
+  action->top_frame_host = top_frame_origin_.host();
+  agent_->OnContentFiltered(render_frame_id_, std::move(action));
 }
 
 }  // namespace neeva

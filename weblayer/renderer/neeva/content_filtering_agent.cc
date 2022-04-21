@@ -44,6 +44,18 @@ void ContentFilteringAgent::Log(const std::string& message) {
   }
 }
 
+void ContentFilteringAgent::OnContentFiltered(
+    int32_t render_frame_id, mojom::ContentFilterActionPtr action) {
+  if (task_runner_->RunsTasksInCurrentSequence()) {
+    service_->OnContentFiltered(render_frame_id, std::move(action));
+  } else {
+    task_runner_->PostTask(
+        FROM_HERE, base::BindOnce(
+            &ContentFilteringAgent::OnContentFiltered,
+            this, render_frame_id, std::move(action)));
+  }
+}
+
 ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     const GURL& url, const url::Origin& first_party_origin) const {
   // NOTE: Called from any thread.

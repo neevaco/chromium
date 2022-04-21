@@ -15,8 +15,10 @@ class ContentFilteringService : public mojom::ContentFilteringService {
 
   // mojom::ContentFilteringService methods:
   void Log(const std::string& message) override;
-  void RefreshRules(int64_t current_sequence_num, RefreshRulesCallback callback) override;
-  void OnContentFiltered(int32_t render_frame_id, mojom::ContentFilterStatsPtr stats) override;
+  void RefreshRules(
+      int64_t current_sequence_num, RefreshRulesCallback callback) override;
+  void OnContentFiltered(
+      int32_t render_frame_id, mojom::ContentFilterActionPtr action) override;
 };
 
 }  // namespace neeva

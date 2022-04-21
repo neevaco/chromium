@@ -8,19 +8,14 @@ enum ContentFilterMode {
 };
 
 struct ContentFilterRules {
-  // TODO: Add more fields, including blocking rules
-
   ContentFilterMode mode;
   array<string> top_level_host_exclusions;
   handle<shared_buffer> url_pattern_data;
 };
 
-struct ContentFilterStats {
-  // TODO: Add more fields
-
-  string top_level_host;
-  int32 num_cookies_blocked;
-  int32 num_loads_blocked;
+struct ContentFilterAction {
+  string host;
+  string top_frame_host;
 };
 
 interface ContentFilteringService {
@@ -37,7 +32,7 @@ interface ContentFilteringService {
 
   // When a child process filters content, it calls OnContentFiltered to let the
   // service know about it. `render_frame_id` identifies the frame in which content
-  // was blocked and `stats` indicates what was blocked. (The service can map the
+  // was blocked and `action` indicates what was blocked. (The service can map the
   // render_frame_id to the corresponding tab.)
-  OnContentFiltered(int32 render_frame_id, ContentFilterStats stats);
+  OnContentFiltered(int32 render_frame_id, ContentFilterAction action);
 };

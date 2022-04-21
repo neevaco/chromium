@@ -15,7 +15,8 @@ ContentFilteringService::ContentFilteringService() = default;
 ContentFilteringService::~ContentFilteringService() = default;
 
 // static
-void ContentFilteringService::AddInterface(service_manager::BinderRegistry* registry) {
+void ContentFilteringService::AddInterface(
+    service_manager::BinderRegistry* registry) {
   auto create_service =
       [](mojo::PendingReceiver<mojom::ContentFilteringService> receiver) {
         mojo::MakeSelfOwnedReceiver(std::make_unique<ContentFilteringService>(),
@@ -35,7 +36,7 @@ void ContentFilteringService::RefreshRules(
 }
 
 void ContentFilteringService::OnContentFiltered(
-    int32_t render_frame_id, mojom::ContentFilterStatsPtr stats) {
+    int32_t render_frame_id, mojom::ContentFilterActionPtr action) {
   // TODO: implement me!
 }
 
