@@ -44,6 +44,10 @@ void ContentFilteringService::RefreshRules(
     url_pattern_index::UrlPatternIndexBuilder index_builder(&flat_builder);
 
     // XXX add rules
+    url_pattern_index::flat::UrlRuleBuilder rule_builder(flat_builder);
+    rule_builder.add_url_pattern(flat_builder.CreateString(".doubleclick.net/"));
+    rule_builder.add_element_types(url_pattern_index::proto::ELEMENT_TYPE_IMAGE);
+    index_builder.IndexUrlRule(rule_builder.Finish());
 
     const auto index_offset = index_builder.Finish();
     flat_builder.Finish(index_offset);
@@ -68,6 +72,7 @@ void ContentFilteringService::RefreshRules(
 void ContentFilteringService::OnContentFiltered(
     int32_t render_frame_id, mojom::ContentFilterActionPtr action) {
   // TODO: implement me!
+  LOG(ERROR) << ">>> BLOCKED: " << action->host;
 }
 
 }  // namespace neeva
