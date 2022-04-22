@@ -11,6 +11,23 @@
 namespace weblayer {
 namespace neeva {
 
+namespace {
+
+url_pattern_index::proto::ElementType GetElementTypeForRequest(
+    const network::ResourceRequest* request) {
+  auto result = url_pattern_index::proto::ELEMENT_TYPE_UNSPECIFIED;
+  switch (request->destination) {
+    case network::mojom::RequestDestination::kImage:
+      result = url_pattern_index::proto::ELEMENT_TYPE_IMAGE;
+      break;
+    default:
+      break;
+  }
+  return result;
+}
+
+}  // namespace
+
 ContentFilter::~ContentFilter() = default;
 
 ContentFilter::ContentFilter(
@@ -36,7 +53,9 @@ void ContentFilter::WillStartRequest(
       base::StringPrintf("WillStartRequest: [%s] dest=%d",
           request->url.spec().c_str(), request->destination));
 
-  switch (agent_->GetPolicyForRequest(request->url, top_frame_origin_)) {
+  auto element_type = GetElementTypeForRequest(request);
+
+  switch (agent_->GetPolicyForRequest(request->url, top_frame_origin_, element_type)) {
     case ContentFilteringPolicy::kAllow:
       return;
     case ContentFilteringPolicy::kBlockCookies:

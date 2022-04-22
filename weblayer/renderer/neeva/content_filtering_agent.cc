@@ -2,6 +2,7 @@
 
 #include "weblayer/renderer/neeva/content_filtering_agent.h"
 
+#include "base/strings/stringprintf.h"
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "components/url_pattern_index/url_pattern_index.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
@@ -57,7 +58,8 @@ void ContentFilteringAgent::OnContentFiltered(
 }
 
 ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
-    const GURL& url, const url::Origin& first_party_origin) const {
+    const GURL& url, const url::Origin& first_party_origin,
+    url_pattern_index::proto::ElementType element_type) const {
   // NOTE: Called from any thread.
   base::AutoLock locked(rules_lock_);
 
@@ -67,8 +69,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
 
   // TODO: Plumb through element type.
   if (!matcher_->FindMatch(
-          url, first_party_origin,
-          url_pattern_index::proto::ELEMENT_TYPE_UNSPECIFIED,
+          url, first_party_origin, element_type,
           url_pattern_index::proto::ACTIVATION_TYPE_UNSPECIFIED,
           IsThirdParty(url, first_party_origin),
           false,
@@ -108,6 +109,8 @@ void ContentFilteringAgent::RefreshRules() {
 
 void ContentFilteringAgent::OnApplyNewRules(
     int64_t new_generation_num, mojom::ContentFilterRulesPtr new_rules) {
+  Log("OnApplyNewRules");
+
   current_generation_num_ = new_generation_num;
 
   // Update the matcher.
@@ -126,11 +129,16 @@ void ContentFilteringAgent::OnApplyNewRules(
         url_pattern_index::flat::GetUrlPatternIndex(rules_data_mapping_.get());
     matcher_ =
         std::make_unique<url_pattern_index::UrlPatternIndexMatcher>(flat_index);
+
+    auto count = matcher_->GetRulesCount();
+    Log(base::StringPrintf("%lu rules", count));
   }
 
   // Kick-off another hanging refresh, waiting for the browser-side to let us know
   // when it has new rules for us.
-  RefreshRules();
+  // TODO: Move to a separate mojo pipe so we can do "hanging gets" like this w/o
+  // blocking other mojo messages.
+  //RefreshRules();
 }
 
 }  // namespace neeva

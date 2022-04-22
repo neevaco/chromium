@@ -5,6 +5,7 @@
 
 #include "base/memory/ref_counted.h"
 #include "base/synchronization/lock.h"
+#include "components/url_pattern_index/proto/rules.pb.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "weblayer/common/neeva/content_filtering_service.mojom.h"
 
@@ -50,7 +51,8 @@ class ContentFilteringAgent
   void OnContentFiltered(
       int32_t render_frame_id, mojom::ContentFilterActionPtr action);
   ContentFilteringPolicy GetPolicyForRequest(
-      const GURL& url, const url::Origin& first_party_origin) const;
+      const GURL& url, const url::Origin& first_party_origin,
+      url_pattern_index::proto::ElementType element_type) const;
 
  private:
   friend struct ContentFilteringAgentDeleter;

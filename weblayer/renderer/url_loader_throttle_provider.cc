@@ -61,6 +61,9 @@ URLLoaderThrottleProvider::CreateThrottles(
   DCHECK(!is_frame_resource ||
          type_ == blink::URLLoaderThrottleProviderType::kFrame);
 
+  throttles.emplace_back(neeva_content_filtering_agent_->CreateThrottle(
+      render_frame_id, request));
+
   if (!is_frame_resource) {
     if (safe_browsing_remote_)
       safe_browsing_.Bind(std::move(safe_browsing_remote_));
@@ -76,9 +79,6 @@ URLLoaderThrottleProvider::CreateThrottles(
     if (throttle)
       throttles.emplace_back(std::move(throttle));
   }
-
-  throttles.emplace_back(neeva_content_filtering_agent_->CreateThrottle(
-      render_frame_id, request));
 
   return throttles;
 }
