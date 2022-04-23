@@ -102,7 +102,10 @@ void ContentFilteringAgent::DeleteOnCorrectThread() const {
 }
 
 void ContentFilteringAgent::RefreshRules() {
-  service_->RefreshRules(
+  if (!rules_provider_) {
+    service_->GetRulesProvider(rules_provider_.BindNewPipeAndPassReceiver());
+  }
+  rules_provider_->RefreshRules(
       current_generation_num_,
       base::BindOnce(&ContentFilteringAgent::OnApplyNewRules, this));
 }
@@ -136,9 +139,7 @@ void ContentFilteringAgent::OnApplyNewRules(
 
   // Kick-off another hanging refresh, waiting for the browser-side to let us know
   // when it has new rules for us.
-  // TODO: Move to a separate mojo pipe so we can do "hanging gets" like this w/o
-  // blocking other mojo messages.
-  //RefreshRules();
+  RefreshRules();
 }
 
 }  // namespace neeva

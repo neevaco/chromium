@@ -1,48 +1,21 @@
 // Copyright Neeva. All rights reserved.
 
-#include "weblayer/browser/neeva/content_filtering_service.h"
+#include "weblayer/browser/neeva/content_filter_rules_provider.h"
 
 #include "base/logging.h"
 #include "components/url_pattern_index/url_pattern_index.h"
-#include "content/public/browser/browser_task_traits.h"
-#include "content/public/browser/browser_thread.h"
-#include "mojo/public/cpp/bindings/self_owned_receiver.h"
 #include "mojo/public/cpp/system/buffer.h"
 #include "url/gurl.h"
 #include "url/origin.h"
-#include "weblayer/browser/neeva/content_filter_rules_provider.h"
 
 namespace weblayer {
 namespace neeva {
 
-ContentFilteringService::ContentFilteringService() = default;
+ContentFilterRulesProvider::ContentFilterRulesProvider() = default;
 
-ContentFilteringService::~ContentFilteringService() = default;
+ContentFilterRulesProvider::~ContentFilterRulesProvider() = default;
 
-// static
-void ContentFilteringService::AddInterface(
-    service_manager::BinderRegistry* registry) {
-  auto create_service =
-      [](mojo::PendingReceiver<mojom::ContentFilteringService> receiver) {
-        mojo::MakeSelfOwnedReceiver(std::make_unique<ContentFilteringService>(),
-                                    std::move(receiver));
-      };
-  registry->AddInterface(
-      base::BindRepeating(create_service), content::GetUIThreadTaskRunner({}));
-}
-
-void ContentFilteringService::Log(const std::string& message) {
-  LOG(ERROR) << ">>> " << message;
-}
-
-void ContentFilteringService::GetRulesProvider(
-    mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver) {
-  mojo::MakeSelfOwnedReceiver(std::make_unique<ContentFilterRulesProvider>(),
-                              std::move(receiver));
-}
-
-#if 0
-void ContentFilteringService::RefreshRules(
+void ContentFilterRulesProvider::RefreshRules(
     int64_t current_sequence_num, RefreshRulesCallback callback) {
   LOG(ERROR) << ">>> RefreshRules()";
 
@@ -105,13 +78,6 @@ void ContentFilteringService::RefreshRules(
     LOG(ERROR) << ">>> sending rules...";
     std::move(callback).Run(1, std::move(rules));
   }
-}
-#endif
-
-void ContentFilteringService::OnContentFiltered(
-    int32_t render_frame_id, mojom::ContentFilterActionPtr action) {
-  // TODO: implement me!
-  LOG(ERROR) << ">>> BLOCKED: " << action->host;
 }
 
 }  // namespace neeva

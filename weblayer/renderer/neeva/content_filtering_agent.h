@@ -65,6 +65,7 @@ class ContentFilteringAgent
 
   scoped_refptr<base::SequencedTaskRunner> task_runner_;
   mojo::Remote<mojom::ContentFilteringService> service_;
+  mojo::Remote<mojom::ContentFilterRulesProvider> rules_provider_;
   int64_t current_generation_num_ = 0;
 
   // Acquire |rules_lock_| before accessing any of the following fields.
