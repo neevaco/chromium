@@ -63,6 +63,7 @@ import org.chromium.ui.base.ViewAndroidDelegate;
 import org.chromium.ui.base.WindowAndroid;
 import org.chromium.url.GURL;
 import org.chromium.weblayer_private.interfaces.APICallException;
+import org.chromium.weblayer_private.interfaces.IContentFilterCallbackClient;
 import org.chromium.weblayer_private.interfaces.IContextMenuParams;
 import org.chromium.weblayer_private.interfaces.IErrorPageCallbackClient;
 import org.chromium.weblayer_private.interfaces.IExternalIntentInIncognitoCallbackClient;
@@ -716,6 +717,21 @@ public final class TabImpl extends ITab.Stub {
         }
     }
 
+    @Override
+    public Map getContentFilterStats() {
+        Map<String, Integer> map = new HashMap<>();
+        String[] hosts = TabImplJni.get().getContentFilterHosts(mNativeTab);
+        for (int i = 0; i < hosts.length; ++i) {
+            map.put(hosts[i], TabImplJni.get().getContentFilterCountForHost(mNativeTab, hosts[i]));
+        }
+        return map;
+    }
+
+    @Override
+    public void setContentFilterCallbackClient(IContentFilterCallbackClient client) {
+        TabImplJni.get().setContentFilterCallbackClient(mNativeTab, client);
+    }
+
     public ExternalIntentInIncognitoCallbackProxy getExternalIntentInIncognitoCallbackProxy() {
         return mExternalIntentInIncognitoCallbackProxy;
     }
@@ -1313,5 +1329,8 @@ public final class TabImpl extends ITab.Stub {
         boolean isDesktopUserAgentEnabled(long nativeTabImpl);
         void download(long nativeTabImpl, long nativeContextMenuParams);
         void destroyContextMenuParams(long contextMenuParams);
+        String[] getContentFilterHosts(long nativeTabImpl);
+        int getContentFilterCountForHost(long nativeTabImpl, String host);
+        void setContentFilterCallbackClient(long nativeTabImpl, IContentFilterCallbackClient client);
     }
 }

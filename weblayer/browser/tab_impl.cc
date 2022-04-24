@@ -910,6 +910,21 @@ jboolean TabImpl::IsDesktopUserAgentEnabled(JNIEnv* env) {
   return entry->GetIsOverridingUserAgent();
 }
 
+base::android::ScopedJavaLocalRef<jobjectArray> TabImpl::GetContentFilterHosts(JNIEnv* env) {
+  std::vector<std::string> hosts;
+  // XXX 
+  return base::android::ToJavaArrayOfStrings(env, hosts);
+}
+
+jint TabImpl::GetContentFilterCountForHost(JNIEnv* env, const JavaParamRef<jstring>& host) {
+  // XXX
+  return 0;
+}
+
+void TabImpl::SetContentFilterCallbackClient(JNIEnv* env, const base::android::JavaParamRef<jobject>& client) {
+  // XXX
+}
+
 void TabImpl::Download(JNIEnv* env, jlong native_context_menu_params) {
   auto* context_menu_params =
       reinterpret_cast<content::ContextMenuParams*>(native_context_menu_params);

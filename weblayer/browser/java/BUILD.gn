@@ -607,6 +607,7 @@ android_aidl("aidl") {
     "org/chromium/weblayer_private/interfaces/IClientDownload.aidl",
     "org/chromium/weblayer_private/interfaces/IClientNavigation.aidl",
     "org/chromium/weblayer_private/interfaces/IClientPage.aidl",
+    "org/chromium/weblayer_private/interfaces/IContentFilterCallbackClient.aidl",
     "org/chromium/weblayer_private/interfaces/IContextMenuParams.aidl",
     "org/chromium/weblayer_private/interfaces/ICookieChangedCallbackClient.aidl",
     "org/chromium/weblayer_private/interfaces/ICookieManager.aidl",
