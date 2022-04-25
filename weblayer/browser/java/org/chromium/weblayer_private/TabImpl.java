@@ -732,6 +732,15 @@ public final class TabImpl extends ITab.Stub {
         TabImplJni.get().setContentFilterCallbackClient(mNativeTab, client);
     }
 
+    @CalledByNative
+    private static void runContentFilterCallback(Object callback) {
+        try {
+            ((IContentFilterCallbackClient) callback).onContentFilterStatsUpdated();
+        } catch (RemoteException e) {
+            throw new APICallException(e);
+        }
+    }
+
     public ExternalIntentInIncognitoCallbackProxy getExternalIntentInIncognitoCallbackProxy() {
         return mExternalIntentInIncognitoCallbackProxy;
     }

@@ -74,6 +74,7 @@
 #include "weblayer/browser/js_communication/web_message_host_factory_wrapper.h"
 #include "weblayer/browser/navigation_controller_impl.h"
 #include "weblayer/browser/navigation_entry_data.h"
+#include "weblayer/browser/neeva/content_filter_client.h"
 #include "weblayer/browser/neeva/content_filter_stats.h"
 #include "weblayer/browser/no_state_prefetch/prerender_tab_helper.h"
 #include "weblayer/browser/page_load_metrics_initialize.h"
@@ -958,7 +959,14 @@ jint TabImpl::GetContentFilterCountForHost(
 
 void TabImpl::SetContentFilterCallbackClient(
     JNIEnv* env, const base::android::JavaParamRef<jobject>& client) {
-  // XXX
+  base::android::ScopedJavaGlobalRef<jobject> scoped_client(client);
+  neeva::ContentFilterClient::GetOrCreate(web_contents_.get())->set_callback(
+      base::BindRepeating(
+          [](JNIEnv* env, base::android::ScopedJavaGlobalRef<jobject> client) {
+            Java_TabImpl_runContentFilterCallback(env, client);
+          },
+          base::Unretained(env), std::move(scoped_client)
+      ));
 }
 #endif  // BUILDFLAG(IS_ANDROID)
 
