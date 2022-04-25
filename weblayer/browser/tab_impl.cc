@@ -74,6 +74,7 @@
 #include "weblayer/browser/js_communication/web_message_host_factory_wrapper.h"
 #include "weblayer/browser/navigation_controller_impl.h"
 #include "weblayer/browser/navigation_entry_data.h"
+#include "weblayer/browser/neeva/content_filter_stats.h"
 #include "weblayer/browser/no_state_prefetch/prerender_tab_helper.h"
 #include "weblayer/browser/page_load_metrics_initialize.h"
 #include "weblayer/browser/page_specific_content_settings_delegate.h"
@@ -910,18 +911,40 @@ jboolean TabImpl::IsDesktopUserAgentEnabled(JNIEnv* env) {
   return entry->GetIsOverridingUserAgent();
 }
 
-base::android::ScopedJavaLocalRef<jobjectArray> TabImpl::GetContentFilterHosts(JNIEnv* env) {
+base::android::ScopedJavaLocalRef<jobjectArray> TabImpl::GetContentFilterHosts(
+    JNIEnv* env) {
   std::vector<std::string> hosts;
-  // XXX 
+
+  auto* stats = neeva::ContentFilterStats::GetForCurrentDocument(
+      web_contents_->GetMainFrame());
+  if (stats) {
+    for (const auto& it : stats->data()) {
+      hosts.push_back(it.first);
+    }
+  }
+
   return base::android::ToJavaArrayOfStrings(env, hosts);
 }
 
-jint TabImpl::GetContentFilterCountForHost(JNIEnv* env, const JavaParamRef<jstring>& host) {
-  // XXX
-  return 0;
+jint TabImpl::GetContentFilterCountForHost(
+    JNIEnv* env, const JavaParamRef<jstring>& host) {
+  int count = 0;
+
+  auto* stats = neeva::ContentFilterStats::GetForCurrentDocument(
+      web_contents_->GetMainFrame());
+  if (stats) {
+    auto it =
+        stats->data().find(base::android::ConvertJavaStringToUTF8(env, host));
+    if (it != stats->data().end()) {
+      count = it->second;
+    }
+  }
+
+  return count;
 }
 
-void TabImpl::SetContentFilterCallbackClient(JNIEnv* env, const base::android::JavaParamRef<jobject>& client) {
+void TabImpl::SetContentFilterCallbackClient(
+    JNIEnv* env, const base::android::JavaParamRef<jobject>& client) {
   // XXX
 }
 
