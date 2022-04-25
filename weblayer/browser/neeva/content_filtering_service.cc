@@ -6,7 +6,9 @@
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/web_contents.h"
 #include "mojo/public/cpp/bindings/self_owned_receiver.h"
+#include "weblayer/browser/neeva/content_filter_client.h"
 #include "weblayer/browser/neeva/content_filter_rules_provider.h"
 #include "weblayer/browser/neeva/content_filter_stats.h"
 
@@ -59,7 +61,13 @@ void ContentFilteringService::OnContentFiltered(
   ContentFilterStats::GetOrCreateForCurrentDocument(rfh)->RecordFilteredHost(
       action->host);
 
-  // TODO: send notification
+  auto* web_contents = content::WebContents::FromRenderFrameHost(rfh);
+  if (web_contents) {
+    auto* client = ContentFilterClient::Get(web_contents);
+    if (client) {
+      client->Notify();
+    }
+  }
 }
 
 }  // namespace neeva
