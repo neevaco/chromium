@@ -2,42 +2,16 @@
 
 #include "weblayer/browser/neeva/content_filtering_service.h"
 
-#include <map>
-
 #include "base/logging.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
-#include "content/public/browser/document_user_data.h"
 #include "content/public/browser/render_frame_host.h"
 #include "mojo/public/cpp/bindings/self_owned_receiver.h"
 #include "weblayer/browser/neeva/content_filter_rules_provider.h"
+#include "weblayer/browser/neeva/content_filter_stats.h"
 
 namespace weblayer {
 namespace neeva {
-
-namespace {
-
-class ContentFilterStats : public content::DocumentUserData<ContentFilterStats> {
- public:
-  ~ContentFilterStats() override = default;
-
-  void RecordFilteredHost(const std::string& host) {
-    host_to_counts_[host] += 1;
-  }
-
- private:
-  explicit ContentFilterStats(content::RenderFrameHost* rfh)
-      : DocumentUserData(rfh) {}
-
-  friend DocumentUserData;
-  DOCUMENT_USER_DATA_KEY_DECL();
-
-  std::map<std::string, int> host_to_counts_;
-};
-
-DOCUMENT_USER_DATA_KEY_IMPL(ContentFilterStats);
-
-}  // namespace
 
 ContentFilteringService::ContentFilteringService(int render_process_id)
     : render_process_id_(render_process_id) {

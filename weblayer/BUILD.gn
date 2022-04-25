@@ -233,6 +233,8 @@ source_set("weblayer_lib_base") {
     "browser/navigation_ui_data_impl.h",
     "browser/neeva/content_filter_rules_provider.cc",
     "browser/neeva/content_filter_rules_provider.h",
+    "browser/neeva/content_filter_stats.cc",
+    "browser/neeva/content_filter_stats.h",
     "browser/neeva/content_filtering_service.cc",
     "browser/neeva/content_filtering_service.h",
     "browser/no_state_prefetch/no_state_prefetch_link_manager_factory.cc",
