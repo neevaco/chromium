@@ -11,10 +11,11 @@ namespace neeva {
 
 class ContentFilteringService : public mojom::ContentFilteringService {
  public:
-  ContentFilteringService();
+  explicit ContentFilteringService(int render_process_id);
   ~ContentFilteringService() override;
 
-  static void AddInterface(service_manager::BinderRegistry* registry);
+  static void AddInterface(
+      service_manager::BinderRegistry* registry, int render_process_id);
 
   // mojom::ContentFilteringService methods:
   void Log(const std::string& message) override;
@@ -23,6 +24,9 @@ class ContentFilteringService : public mojom::ContentFilteringService {
           override;
   void OnContentFiltered(
       int32_t render_frame_id, mojom::ContentFilterActionPtr action) override;
+
+ private:
+  int render_process_id_;
 };
 
 }  // namespace neeva

@@ -945,7 +945,8 @@ void ContentBrowserClientImpl::ExposeInterfacesToRenderer(
     GetSafeBrowsingService()->AddInterface(registry, render_process_host);
   }
 
-  neeva::ContentFilteringService::AddInterface(registry);
+  neeva::ContentFilteringService::AddInterface(
+      registry, render_process_host->GetID());
 #endif  // BUILDFLAG(IS_ANDROID)
 }
 
