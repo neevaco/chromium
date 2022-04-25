@@ -67,7 +67,6 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
-  // TODO: Plumb through element type.
   if (!matcher_->FindMatch(
           url, first_party_origin, element_type,
           url_pattern_index::proto::ACTIVATION_TYPE_UNSPECIFIED,
