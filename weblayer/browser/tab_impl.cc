@@ -911,6 +911,19 @@ jboolean TabImpl::IsDesktopUserAgentEnabled(JNIEnv* env) {
   return entry->GetIsOverridingUserAgent();
 }
 
+void TabImpl::Download(JNIEnv* env, jlong native_context_menu_params) {
+  auto* context_menu_params =
+      reinterpret_cast<content::ContextMenuParams*>(native_context_menu_params);
+
+  bool is_link = context_menu_params->media_type !=
+                     blink::mojom::ContextMenuDataMediaType::kImage &&
+                 context_menu_params->media_type !=
+                     blink::mojom::ContextMenuDataMediaType::kVideo;
+
+  download::CreateContextMenuDownload(web_contents_.get(), *context_menu_params,
+                                      std::string(), is_link);
+}
+
 base::android::ScopedJavaLocalRef<jobjectArray> TabImpl::GetContentFilterHosts(
     JNIEnv* env) {
   std::vector<std::string> hosts;
@@ -946,19 +959,6 @@ jint TabImpl::GetContentFilterCountForHost(
 void TabImpl::SetContentFilterCallbackClient(
     JNIEnv* env, const base::android::JavaParamRef<jobject>& client) {
   // XXX
-}
-
-void TabImpl::Download(JNIEnv* env, jlong native_context_menu_params) {
-  auto* context_menu_params =
-      reinterpret_cast<content::ContextMenuParams*>(native_context_menu_params);
-
-  bool is_link = context_menu_params->media_type !=
-                     blink::mojom::ContextMenuDataMediaType::kImage &&
-                 context_menu_params->media_type !=
-                     blink::mojom::ContextMenuDataMediaType::kVideo;
-
-  download::CreateContextMenuDownload(web_contents_.get(), *context_menu_params,
-                                      std::string(), is_link);
 }
 #endif  // BUILDFLAG(IS_ANDROID)
 

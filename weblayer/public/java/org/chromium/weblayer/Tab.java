@@ -776,6 +776,15 @@ public class Tab {
         }
     }
 
+    public Map<String, Integer> getContentFilterStats() {
+        ThreadCheck.ensureOnUiThread();
+        try {
+            return (Map<String, Integer>) mImpl.getContentFilterStats();
+        } catch (RemoteException e) {
+            throw new APICallException(e);
+        }
+    }
+
     /**
      * Experimental (for now) API to trigger the AddToHomescreen dialog for the page in the tab.
      * This adds a homescreen shortcut for it, or installs as a PWA or WebAPK.
