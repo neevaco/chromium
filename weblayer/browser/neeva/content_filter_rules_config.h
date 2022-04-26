@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 
+#include "base/callback_forward.h"
 #include "base/files/file_path.h"
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list.h"
@@ -39,7 +40,11 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   void StopFiltering();
 
   bool is_filtering_enabled() const { return is_filtering_enabled_; }
-  mojom::ContentFilterRulesPtr Snapshot() const;
+
+  // Builds a snapshot of the current configuration. Runs asynchronously
+  // due to file processing required.
+  void Snapshot(
+      base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback);
 
   class Observer : public base::CheckedObserver {
    public:

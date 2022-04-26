@@ -2,6 +2,7 @@
 
 #include "weblayer/browser/neeva/content_filter_rules_config.h"
 
+#include "base/callback.h"
 #include "base/memory/ptr_util.h"
 #include "content/public/browser/browser_context.h"
 
@@ -33,7 +34,7 @@ ContentFilterRulesConfig* ContentFilterRulesConfig::GetOrCreate(
 
 void ContentFilterRulesConfig::SetRulesFile(const base::FilePath& rules_file) {
   rules_file_ = rules_file;
-  // TODO: read file into SHM instead. no need to keep the file path, right?
+  // TODO: invalidate existing SHM.
   ConfigChanged();
 }
 
@@ -71,9 +72,10 @@ void ContentFilterRulesConfig::StopFiltering() {
   ConfigChanged();
 }
 
-mojom::ContentFilterRulesPtr ContentFilterRulesConfig::Snapshot() const {
-  // TODO: clone SHM (readonly) and populate the ContentFilterRulesPtr.
-  return mojom::ContentFilterRulesPtr();
+void ContentFilterRulesConfig::Snapshot(
+    base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback) {
+  // TODO: read rules file into SHM, clone SHM (readonly) and populate the
+  // ContentFilterRulesPtr.
 }
 
 void ContentFilterRulesConfig::AddObserver(Observer* observer) {
