@@ -54,6 +54,7 @@ public final class ProfileImpl
     private final String mName;
     private final boolean mIsIncognito;
     private long mNativeProfile;
+    private ContentFilterManagerImpl mContentFilterManager;
     private CookieManagerImpl mCookieManager;
     private PrerenderControllerImpl mPrerenderController;
     private Runnable mOnDestroyCallback;
@@ -446,6 +447,7 @@ public final class ProfileImpl
     @Override
     public IContentFilterManager getContentFilterManager() {
         StrictModeWorkaround.apply();
+        checkNotDestroyed();
         return null;  // XXX
     }
 

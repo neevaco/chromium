@@ -131,6 +131,7 @@ android_library("java") {
     "org/chromium/weblayer_private/ContactsPickerAdapter.java",
     "org/chromium/weblayer_private/ContentViewRenderView.java",
     "org/chromium/weblayer_private/ContentViewWithAutofill.java",
+    "org/chromium/weblayer_private/ContentFilterManagerImpl.java",
     "org/chromium/weblayer_private/CookieManagerImpl.java",
     "org/chromium/weblayer_private/CrashReporterControllerImpl.java",
     "org/chromium/weblayer_private/DownloadCallbackProxy.java",
