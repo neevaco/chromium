@@ -25,6 +25,7 @@ import org.chromium.content_public.browser.UiThreadTaskTraits;
 import org.chromium.weblayer_private.interfaces.APICallException;
 import org.chromium.weblayer_private.interfaces.BrowsingDataType;
 import org.chromium.weblayer_private.interfaces.IBrowser;
+import org.chromium.weblayer_private.interfaces.IContentFilterManager;
 import org.chromium.weblayer_private.interfaces.ICookieManager;
 import org.chromium.weblayer_private.interfaces.IDownloadCallbackClient;
 import org.chromium.weblayer_private.interfaces.IGoogleAccountAccessTokenFetcherClient;
@@ -440,6 +441,12 @@ public final class ProfileImpl
         mAccessTokenFetcherProxy.onAccessTokenIdentifiedAsInvalid(
                 ObjectWrapper.unwrap(scopesWrapper, Set.class),
                 ObjectWrapper.unwrap(tokenWrapper, String.class));
+    }
+
+    @Override
+    public IContentFilterManager getContentFilterManager() {
+        StrictModeWorkaround.apply();
+        return null;  // XXX
     }
 
     @NativeMethods

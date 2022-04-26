@@ -719,6 +719,7 @@ public final class TabImpl extends ITab.Stub {
 
     @Override
     public Map getContentFilterStats() {
+        StrictModeWorkaround.apply();
         Map<String, Integer> map = new HashMap<>();
         String[] hosts = TabImplJni.get().getContentFilterHosts(mNativeTab);
         for (int i = 0; i < hosts.length; ++i) {
@@ -729,6 +730,7 @@ public final class TabImpl extends ITab.Stub {
 
     @Override
     public void setContentFilterCallbackClient(IContentFilterCallbackClient client) {
+        StrictModeWorkaround.apply();
         TabImplJni.get().setContentFilterCallbackClient(mNativeTab, client);
     }
 
