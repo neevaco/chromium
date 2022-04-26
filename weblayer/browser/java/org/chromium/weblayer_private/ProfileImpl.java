@@ -86,6 +86,8 @@ public final class ProfileImpl
         mIsIncognito = isIncognito;
         mName = name;
         mNativeProfile = ProfileImplJni.get().createProfile(name, ProfileImpl.this, mIsIncognito);
+        mContentFilterManager =
+                new ContentFilterManagerImpl(ProfileImplJni.get().getContentFilterManager(mNativeProfile));
         mCookieManager =
                 new CookieManagerImpl(ProfileImplJni.get().getCookieManager(mNativeProfile));
         mPrerenderController = new PrerenderControllerImpl(
@@ -305,6 +307,13 @@ public final class ProfileImpl
     }
 
     @Override
+    public IContentFilterManager getContentFilterManager() {
+        StrictModeWorkaround.apply();
+        checkNotDestroyed();
+        return mContentFilterManagerImpl;
+    }
+
+    @Override
     public ICookieManager getCookieManager() {
         StrictModeWorkaround.apply();
         checkNotDestroyed();
@@ -444,13 +453,6 @@ public final class ProfileImpl
                 ObjectWrapper.unwrap(tokenWrapper, String.class));
     }
 
-    @Override
-    public IContentFilterManager getContentFilterManager() {
-        StrictModeWorkaround.apply();
-        checkNotDestroyed();
-        return null;  // XXX
-    }
-
     @NativeMethods
     interface Natives {
         void enumerateAllProfileNames(Callback<String[]> callback);
@@ -462,6 +464,7 @@ public final class ProfileImpl
         void clearBrowsingData(long nativeProfileImpl, @ImplBrowsingDataType int[] dataTypes,
                 long fromMillis, long toMillis, Runnable callback);
         void setDownloadDirectory(long nativeProfileImpl, String directory);
+        long getContentFilterManager(long nativeProfileImpl);
         long getCookieManager(long nativeProfileImpl);
         long getPrerenderController(long nativeProfileImpl);
         void ensureBrowserContextInitialized(long nativeProfileImpl);
