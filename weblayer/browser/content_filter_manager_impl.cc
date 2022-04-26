@@ -5,6 +5,7 @@
 #include "base/callback.h"
 #include "base/memory/ptr_util.h"
 #include "content/public/browser/browser_context.h"
+#include "weblayer/browser/neeva/content_filter_rules_config.h"
 
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/jni_string.h"
@@ -12,6 +13,18 @@
 #endif
 
 namespace weblayer {
+namespace {
+
+neeva::mojom::ContentFilterMode ToContentFilterMode(int mode) {
+  switch (mode) {
+    case 0:
+      return neeva::mojom::ContentFilterMode::BLOCK_COOKIES;
+    default:
+      return neeva::mojom::ContentFilterMode::BLOCK_REQUESTS;
+  }
+}
+
+}  // namespace
 
 ContentFilterManagerImpl::ContentFilterManagerImpl(
     content::BrowserContext* browser_context)
@@ -28,32 +41,37 @@ void ContentFilterManagerImpl::GenerateRulesFile(
 
 void ContentFilterManagerImpl::SetRulesFile(
     JNIEnv* env, const base::android::JavaParamRef<jstring>& rules_file) {
-//  SetRulesFile(base::FilePath(ConvertJavaStringToUTF8(rules_file)));
+  neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_)->
+      SetRulesFile(base::FilePath(ConvertJavaStringToUTF8(rules_file)));
 }
 
 void ContentFilterManagerImpl::SetMode(JNIEnv* env, int mode) {
+  neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_)->
+      SetMode(ToContentFilterMode(mode));
 }
 
 void ContentFilterManagerImpl::AddHostExclusion(
     JNIEnv* env, const base::android::JavaParamRef<jstring>& host) {
-//  AddHostExclusion(ConvertJavaStringToUTF8(host));
+  neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_)->
+      AddHostExclusion(ConvertJavaStringToUTF8(host));
 }
 
 void ContentFilterManagerImpl::RemoveHostExclusion(
     JNIEnv* env, const base::android::JavaParamRef<jstring>& host) {
-//  RemoveHostExclusion(ConvertJavaStringToUTF8(host));
+  neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_)->
+      RemoveHostExclusion(ConvertJavaStringToUTF8(host));
 }
 
 void ContentFilterManagerImpl::ClearAllHostExclusions(JNIEnv* env) {
-//  ClearAllHostExclusions();
+  neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_)->ClearAllHostExclusions();
 }
 
 void ContentFilterManagerImpl::StartFiltering(JNIEnv* env) {
-//  StartFiltering();
+  neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_)->StartFiltering();
 }
 
 void ContentFilterManagerImpl::StopFiltering(JNIEnv* env) {
-//  StopFiltering();
+  neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_)->StopFiltering();
 }
 #endif
 
