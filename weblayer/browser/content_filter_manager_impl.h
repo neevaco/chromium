@@ -25,6 +25,7 @@ class ContentFilterManagerImpl {
 #if BUILDFLAG(IS_ANDROID)
   void GenerateRulesFile(JNIEnv* env,
                          const base::android::JavaParamRef<jstring>& input_file,
+                         const base::android::JavaParamRef<jstring>& output_file,
                          const base::android::JavaParamRef<jobject>& callback);
   void SetRulesFile(JNIEnv* env,
                     const base::android::JavaParamRef<jstring>& rules_file);

@@ -29,13 +29,13 @@ public final class ContentFilterManagerImpl extends IContentFilterManager.Stub {
     }
 
     @Override
-    public void generateRulesFile(String inputFile, IObjectWrapper callback) {
+    public void generateRulesFile(String inputFile, String outputFile, IObjectWrapper callback) {
         StrictModeWorkaround.apply();
-        ValueCallback<String> valueCallback =
-            (ValueCallback<String>) ObjectWrapper.unwrap(callback, ValueCallback.class);
-        Callback<String> baseCallback = (String result) -> valueCallback.onReceiveValue(result);
+        ValueCallback<Boolean> valueCallback =
+            (ValueCallback<Boolean>) ObjectWrapper.unwrap(callback, ValueCallback.class);
+        Callback<Boolean> baseCallback = (Boolean result) -> valueCallback.onReceiveValue(result);
         ContentFilterManagerImplJni.get().generateRulesFile(
-            mNativeContentFilterManager, inputFile, baseCallback);
+            mNativeContentFilterManager, inputFile, outputFile, baseCallback);
     }
 
     @Override
@@ -82,7 +82,8 @@ public final class ContentFilterManagerImpl extends IContentFilterManager.Stub {
 
     @NativeMethods
     interface Natives {
-        void generateRulesFile(long nativeContentFilterManagerImpl, String inputFile, Callback<String> callback);
+        void generateRulesFile(long nativeContentFilterManagerImpl, String inputFile,
+                               String outputFile, Callback<Boolean> callback);
         void setRulesFile(long nativeContentFilterManagerImpl, String rulesFile);
         void setMode(long nativeContentFilterManagerImpl, int mode);
         void addHostExclusion(long nativeContentFilterManagerImpl, String host);
