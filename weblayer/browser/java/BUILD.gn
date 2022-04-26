@@ -469,6 +469,7 @@ generate_jni("jni") {
     "org/chromium/weblayer_private/BrowserImpl.java",
     "org/chromium/weblayer_private/BrowserList.java",
     "org/chromium/weblayer_private/ContentViewRenderView.java",
+    "org/chromium/weblayer_private/ContentFilterManagerImpl.java",
     "org/chromium/weblayer_private/CookieManagerImpl.java",
     "org/chromium/weblayer_private/DownloadCallbackProxy.java",
     "org/chromium/weblayer_private/DownloadImpl.java",

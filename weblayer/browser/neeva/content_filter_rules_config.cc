@@ -1,6 +1,6 @@
 // Copyright 2022 Neeva. All rights reserved.
 
-#include "weblayer/browser/neeva/content_filter_manager.h"
+#include "weblayer/browser/neeva/content_filter_rules_config.h"
 
 #include "base/callback.h"
 #include "base/memory/ptr_util.h"
@@ -10,85 +10,85 @@ namespace weblayer {
 namespace neeva {
 
 // static
-const int ContentFilterManager::kUserDataKey;
+const int ContentFilterRulesConfig::kUserDataKey;
 
-ContentFilterManager::~ContentFilterManager() = default;
+ContentFilterRulesConfig::~ContentFilterRulesConfig() = default;
 
 // static
-ContentFilterManager* ContentFilterManager::Get(
+ContentFilterRulesConfig* ContentFilterRulesConfig::Get(
     content::BrowserContext* browser_context) {
-  return static_cast<ContentFilterManager*>(
+  return static_cast<ContentFilterRulesConfig*>(
       browser_context->GetUserData(&kUserDataKey));
 }
 
 // static
-ContentFilterManager* ContentFilterManager::GetOrCreate(
+ContentFilterRulesConfig* ContentFilterRulesConfig::GetOrCreate(
     content::BrowserContext* browser_context) {
   auto* config = Get(browser_context);
   if (!config) {
-    config = new ContentFilterManager();
+    config = new ContentFilterRulesConfig();
     browser_context->SetUserData(&kUserDataKey, base::WrapUnique(config));
   }
   return config;
 }
 
-void ContentFilterManager::SetRulesFile(const base::FilePath& rules_file) {
+void ContentFilterRulesConfig::SetRulesFile(const base::FilePath& rules_file) {
   rules_file_ = rules_file;
   // TODO: invalidate existing SHM.
   ConfigChanged();
 }
 
-void ContentFilterManager::SetMode(mojom::ContentFilterMode mode) {
+void ContentFilterRulesConfig::SetMode(mojom::ContentFilterMode mode) {
   mode_ = mode;
   ConfigChanged();
 }
 
-void ContentFilterManager::AddHostExclusion(const std::string& host) {
+void ContentFilterRulesConfig::AddHostExclusion(const std::string& host) {
   host_exclusions_.insert(host);
   ConfigChanged();
 }
 
-void ContentFilterManager::RemoveHostExclusion(const std::string& host) {
+void ContentFilterRulesConfig::RemoveHostExclusion(const std::string& host) {
   host_exclusions_.erase(host);
   ConfigChanged();
 }
 
-void ContentFilterManager::ClearAllHostExclusions(const std::string& host) {
+void ContentFilterRulesConfig::ClearAllHostExclusions() {
   host_exclusions_.clear();
   ConfigChanged();
 }
 
-void ContentFilterManager::StartFiltering() {
+void ContentFilterRulesConfig::StartFiltering() {
   if (is_filtering_enabled_)
     return;
   is_filtering_enabled_ = true;
   ConfigChanged();
 }
 
-void ContentFilterManager::StopFiltering() {
+void ContentFilterRulesConfig::StopFiltering() {
   if (!is_filtering_enabled_)
     return;
   is_filtering_enabled_ = false;
   ConfigChanged();
 }
 
-void ContentFilterManager::Snapshot(
+void ContentFilterRulesConfig::Snapshot(
     base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback) {
   // TODO: read rules file into SHM, clone SHM (readonly) and populate the
   // ContentFilterRulesPtr.
 }
 
-void ContentFilterManager::AddObserver(Observer* observer) {
+void ContentFilterRulesConfig::AddObserver(Observer* observer) {
   observers_.AddObserver(observer);
 }
 
-void ContentFilterManager::RemoveObserver(Observer* observer) {
+void ContentFilterRulesConfig::RemoveObserver(Observer* observer) {
   observers_.RemoveObserver(observer);
 }
 
-ContentFilterManager::ContentFilterManager() = default;
+ContentFilterRulesConfig::ContentFilterRulesConfig() = default;
 
-void ContentFilterManager::ConfigChanged() {
+void ContentFilterRulesConfig::ConfigChanged() {
   for (auto& observer : observers_) {
     observer.OnChanged();
   }

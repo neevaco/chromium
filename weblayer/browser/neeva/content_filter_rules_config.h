@@ -1,7 +1,7 @@
 // Copyright 2022 Neeva. All rights reserved.
 
-#ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_MANAGER_H_
-#define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_MANAGER_H_
+#ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
+#define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
 
 #include <set>
 #include <string>
@@ -22,20 +22,20 @@ namespace neeva {
 
 // Stored on each content::BrowserContext and holds the current rules
 // configuration.
-class ContentFilterManager : public base::SupportsUserData::Data {
+class ContentFilterRulesConfig : public base::SupportsUserData::Data {
  public:
-  ~ContentFilterManager() override;
+  ~ContentFilterRulesConfig() override;
 
-  static ContentFilterManager* Get(
+  static ContentFilterRulesConfig* Get(
       content::BrowserContext* browser_context);
-  static ContentFilterManager* GetOrCreate(
+  static ContentFilterRulesConfig* GetOrCreate(
       content::BrowserContext* browser_context);
 
   void SetRulesFile(const base::FilePath& rules_file);
   void SetMode(mojom::ContentFilterMode mode);
   void AddHostExclusion(const std::string& host);
   void RemoveHostExclusion(const std::string& host);
-  void ClearAllHostExclusions(const std::string& host);
+  void ClearAllHostExclusions();
   void StartFiltering();
   void StopFiltering();
 
@@ -56,14 +56,14 @@ class ContentFilterManager : public base::SupportsUserData::Data {
 
   // Enable clients to get a WeakPtr to instances. This allows observers to
   // safely hold a reference to the config.
-  base::WeakPtr<ContentFilterManager> GetWeakPtr() {
+  base::WeakPtr<ContentFilterRulesConfig> GetWeakPtr() {
     return weak_factory_.GetWeakPtr();
   }
 
  private:
   static const int kUserDataKey = 0;
 
-  ContentFilterManager();
+  ContentFilterRulesConfig();
   void ConfigChanged();
 
   base::FilePath rules_file_;
@@ -73,10 +73,10 @@ class ContentFilterManager : public base::SupportsUserData::Data {
 
   base::ObserverList<Observer> observers_;
 
-  base::WeakPtrFactory<ContentFilterManager> weak_factory_{this};
+  base::WeakPtrFactory<ContentFilterRulesConfig> weak_factory_{this};
 };
 
 }  // namespace neeva
 }  // namespace weblayer
 
-#endif  // WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_MANAGER_H_
+#endif  // WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_

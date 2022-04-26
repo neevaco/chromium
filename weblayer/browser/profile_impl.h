@@ -31,6 +31,7 @@ struct OpenURLParams;
 
 namespace weblayer {
 class BrowserContextImpl;
+class ContentFilterManagerImpl;
 class CookieManagerImpl;
 class PrerenderControllerImpl;
 
@@ -205,6 +206,7 @@ class ProfileImpl : public Profile {
 
   base::CallbackListSubscription locale_change_subscription_;
 
+  std::unique_ptr<ContentFilterManagerImpl> content_filter_manager_;
   std::unique_ptr<CookieManagerImpl> cookie_manager_;
   std::unique_ptr<PrerenderControllerImpl> prerender_controller_;
 

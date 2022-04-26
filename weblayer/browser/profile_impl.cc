@@ -38,10 +38,10 @@
 #include "weblayer/browser/browser_impl.h"
 #include "weblayer/browser/browser_list.h"
 #include "weblayer/browser/browsing_data_remover_delegate.h"
+#include "weblayer/browser/content_filter_manager_impl.h"
 #include "weblayer/browser/cookie_manager_impl.h"
 #include "weblayer/browser/favicon/favicon_service_impl.h"
 #include "weblayer/browser/favicon/favicon_service_impl_factory.h"
-#include "weblayer/browser/neeva/content_filter_manager.h"
 #include "weblayer/browser/no_state_prefetch/prerender_controller_impl.h"
 #include "weblayer/browser/persistence/browser_persister_file_utils.h"
 #include "weblayer/browser/tab_impl.h"
@@ -540,8 +540,11 @@ void ProfileImpl::SetDownloadDirectory(
 }
 
 jlong ProfileImpl::GetContentFilterManager(JNIEnv* env) {
-  return reinterpret_cast<jlong>(neeva::ContentFilterManager::GetOrCreate(
-      GetBrowserContext()));
+  if (!content_filter_manager_) {
+    content_filter_manager_ =
+        std::make_unique<ContentFilterManagerImpl>(GetBrowserContext());
+  }
+  return reinterpret_cast<jlong>(content_filter_manager_.get());
 }
 
 jlong ProfileImpl::GetCookieManager(JNIEnv* env) {
