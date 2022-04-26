@@ -310,7 +310,7 @@ public final class ProfileImpl
     public IContentFilterManager getContentFilterManager() {
         StrictModeWorkaround.apply();
         checkNotDestroyed();
-        return mContentFilterManagerImpl;
+        return mContentFilterManager;
     }
 
     @Override

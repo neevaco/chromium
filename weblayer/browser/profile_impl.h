@@ -138,6 +138,7 @@ class ProfileImpl : public Profile {
   void SetDownloadDirectory(
       JNIEnv* env,
       const base::android::JavaParamRef<jstring>& directory);
+  jlong GetContentFilterManager(JNIEnv* env);
   jlong GetCookieManager(JNIEnv* env);
   jlong GetPrerenderController(JNIEnv* env);
   void EnsureBrowserContextInitialized(JNIEnv* env);

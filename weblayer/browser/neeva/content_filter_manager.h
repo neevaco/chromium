@@ -1,7 +1,7 @@
 // Copyright 2022 Neeva. All rights reserved.
 
-#ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
-#define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
+#ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_MANAGER_H_
+#define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_MANAGER_H_
 
 #include <set>
 #include <string>
@@ -22,13 +22,13 @@ namespace neeva {
 
 // Stored on each content::BrowserContext and holds the current rules
 // configuration.
-class ContentFilterRulesConfig : public base::SupportsUserData::Data {
+class ContentFilterManager : public base::SupportsUserData::Data {
  public:
-  ~ContentFilterRulesConfig() override;
+  ~ContentFilterManager() override;
 
-  static ContentFilterRulesConfig* Get(
+  static ContentFilterManager* Get(
       content::BrowserContext* browser_context);
-  static ContentFilterRulesConfig* GetOrCreate(
+  static ContentFilterManager* GetOrCreate(
       content::BrowserContext* browser_context);
 
   void SetRulesFile(const base::FilePath& rules_file);
@@ -56,14 +56,14 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
 
   // Enable clients to get a WeakPtr to instances. This allows observers to
   // safely hold a reference to the config.
-  base::WeakPtr<ContentFilterRulesConfig> GetWeakPtr() {
+  base::WeakPtr<ContentFilterManager> GetWeakPtr() {
     return weak_factory_.GetWeakPtr();
   }
 
  private:
   static const int kUserDataKey = 0;
 
-  ContentFilterRulesConfig();
+  ContentFilterManager();
   void ConfigChanged();
 
   base::FilePath rules_file_;
@@ -73,10 +73,10 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
 
   base::ObserverList<Observer> observers_;
 
-  base::WeakPtrFactory<ContentFilterRulesConfig> weak_factory_{this};
+  base::WeakPtrFactory<ContentFilterManager> weak_factory_{this};
 };
 
 }  // namespace neeva
 }  // namespace weblayer
 
-#endif  // WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
+#endif  // WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_MANAGER_H_
