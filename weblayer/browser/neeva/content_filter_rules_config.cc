@@ -4,6 +4,7 @@
 
 #include "base/callback.h"
 #include "base/memory/ptr_util.h"
+#include "base/threading/sequenced_task_runner_handle.h"
 #include "content/public/browser/browser_context.h"
 
 namespace weblayer {
@@ -89,6 +90,18 @@ void ContentFilterRulesConfig::RemoveObserver(Observer* observer) {
 ContentFilterRulesConfig::ContentFilterRulesConfig() = default;
 
 void ContentFilterRulesConfig::ConfigChanged() {
+  // Notify asynchronously so that multiple back-to-back calls to ConfigChanged
+  // get coalesced into a single notification to observers.
+  if (is_notify_pending_)
+    return;
+  is_notify_pending_ = true;
+  base::SequencedTaskRunnerHandle::Get()->PostTask(
+      FROM_HERE,
+      base::BindOnce(&ContentFilterRulesConfig::NotifyAllObservers, GetWeakPtr()));
+}
+
+void ContentFilterRulesConfig::NotifyAllObservers() {
+  is_notify_pending_ = false;
   for (auto& observer : observers_) {
     observer.OnChanged();
   }

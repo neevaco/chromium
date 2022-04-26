@@ -65,11 +65,13 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
 
   ContentFilterRulesConfig();
   void ConfigChanged();
+  void NotifyAllObservers();
 
   base::FilePath rules_file_;
   mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;
   std::set<std::string> host_exclusions_;
   bool is_filtering_enabled_ = false;
+  bool is_notify_pending_ = false;
 
   base::ObserverList<Observer> observers_;
 
