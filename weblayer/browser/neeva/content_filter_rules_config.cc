@@ -33,6 +33,7 @@ ContentFilterRulesConfig* ContentFilterRulesConfig::GetOrCreate(
 
 void ContentFilterRulesConfig::SetRulesFile(const base::FilePath& rules_file) {
   rules_file_ = rules_file;
+  // TODO: read file into SHM instead. no need to keep the file path, right?
   ConfigChanged();
 }
 
@@ -71,7 +72,7 @@ void ContentFilterRulesConfig::StopFiltering() {
 }
 
 mojom::ContentFilterRulesPtr ContentFilterRulesConfig::Snapshot() const {
-  // XXX
+  // TODO: clone SHM (readonly) and populate the ContentFilterRulesPtr.
   return mojom::ContentFilterRulesPtr();
 }
 
