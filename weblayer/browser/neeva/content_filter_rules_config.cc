@@ -119,23 +119,31 @@ void ContentFilterRulesConfig::Snapshot(
   // Read the rules file into memory if needed.
   if (!rules_file_buffer_) {
     ReadRulesFile(
-        base::BindOnce(&ContentFilterRulesConfig::Snapshot, GetWeakPtr(),
-                       std::move(callback)));
-    // XXX this can lead to an infinite loop if we fail to create the buffer :(
+        base::BindOnce(&ContentFilterRulesConfig::CompleteSnapshot,
+                       GetWeakPtr(), std::move(callback)));
     return;
   }
+  CompleteSnapshot(std::move(callback));
+}
 
-  // XXX consider snapshotting the complete config before going off to read
-  // the file.
+void ContentFilterRulesConfig::CompleteSnapshot(
+    base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback) {
+  auto rules = mojom::ContentFilterRules::New();
+  rules->mode = mode_;
 
   std::vector<std::string> hosts(host_exclusions_.size());
   std::copy(host_exclusions_.begin(), host_exclusions_.end(), hosts.begin());
-
-  auto rules = mojom::ContentFilterRules::New();
-  rules->mode = mode_;
   rules->top_level_host_exclusions = std::move(hosts);
-  rules->url_pattern_data = rules_file_buffer_->Clone(
-      mojo::SharedBufferHandle::AccessMode::READ_ONLY);
+
+  // If the buffer is null at this point, then it means there was an error
+  // trying to read the rules file. If the file was changed via SetRulesFile,
+  // then we would have tried reading that new file. See DidReadRulesFile.
+  // Passing rules to a client with an empty buffer tells the client to
+  // disable filtering.
+  if (rules_file_buffer_) {
+    rules->url_pattern_data = rules_file_buffer_->Clone(
+        mojo::SharedBufferHandle::AccessMode::READ_ONLY);
+  }
 
   // Always dispatch the callback asynchronously so the caller is invoked
   // consistently.
@@ -206,7 +214,6 @@ void ContentFilterRulesConfig::DidReadRulesFile(
   // these buffers to enable that. Using mmap to "read" the files would also
   // solve this.
   rules_file_buffer_ = std::move(buffer);
-  // XXX handle errors
 
   // No need to worry about re-entrancy during these callbacks given the
   // PostTask in Snapshot.

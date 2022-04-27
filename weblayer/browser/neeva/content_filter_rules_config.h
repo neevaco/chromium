@@ -68,6 +68,8 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   ContentFilterRulesConfig();
   void ConfigChanged();
   void NotifyAllObservers();
+  void CompleteSnapshot(
+      base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback);
   void ReadRulesFile(base::OnceClosure continuation);
   void DoReadRulesFile();
   void DidReadRulesFile(
