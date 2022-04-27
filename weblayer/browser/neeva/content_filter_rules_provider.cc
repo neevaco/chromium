@@ -11,14 +11,49 @@
 namespace weblayer {
 namespace neeva {
 
-ContentFilterRulesProvider::ContentFilterRulesProvider() = default;
+ContentFilterRulesProvider::ContentFilterRulesProvider(int render_process_id) {
+  auto* rph = content::RenderProcessHost::FromID(render_process_id);
+  if (!rph) {
+    LOG(ERROR) << "No RenderProcessHost for ID";
+    return;
+  }
+  auto* config =
+      ContentFilterRulesConfig::GetOrCreate(rph->GetBrowserContext());
+  config_ = config->GetWeakPtr();
+  config_->AddObserver(this);
+}
 
-ContentFilterRulesProvider::~ContentFilterRulesProvider() = default;
+ContentFilterRulesProvider::~ContentFilterRulesProvider() {
+  if (config_) {
+    config_->RemoveObserver(this);
+  }
+}
 
 void ContentFilterRulesProvider::RefreshRules(
-    int64_t current_sequence_num, RefreshRulesCallback callback) {
+    int64_t current_generation_num, RefreshRulesCallback callback) {
   LOG(ERROR) << ">>> RefreshRules()";
 
+  // If the client has the latest rules, then just wait for new rules.
+  if (current_generation_num == generation_num_) {
+    refresh_rules_callback_ = std::move(callback);
+    return;
+  }
+
+  SendRulesToClient(std::move(callback));
+}
+
+void ContentFilterRulesProvider::OnContentFilterRulesConfigChanged() {
+  ++generation_num_;
+  if (refresh_rules_callback_) {
+    SendRulesToClient(std::move(refresh_rules_callback_));
+  }
+}
+
+void ContentFilterRulesProvider::SendRulesToClient(RefreshRulesCallback callback) {
+  config_->Snapshot(base::BindOnce(callback, generation_num_));
+}
+
+#if 0
   // TODO: implement me!
 
   // XXX test out with some basic data... and validate that we are
@@ -78,7 +113,7 @@ void ContentFilterRulesProvider::RefreshRules(
     LOG(ERROR) << ">>> sending rules...";
     std::move(callback).Run(1, std::move(rules));
   }
-}
+#endif
 
 }  // namespace neeva
 }  // namespace weblayer

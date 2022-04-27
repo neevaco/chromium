@@ -19,6 +19,8 @@ namespace {
 mojo::ScopedSharedBufferHandle ReadFileToBuffer(
     const base::FilePath& file_path) {
   // TODO: Figure out how to just mmap the file instead of copying it here!
+  // Looks like we can use `mojo::WrapPlatformSharedMemoryRegion` for this.
+  // We should be able to use PlatformSharedMemoryRegion::Take()
 
   base::File file(file_path, base::File::FLAG_OPEN | base::File::FLAG_READ);
   int64_t size = file.GetLength();
@@ -119,8 +121,12 @@ void ContentFilterRulesConfig::Snapshot(
     ReadRulesFile(
         base::BindOnce(&ContentFilterRulesConfig::Snapshot, GetWeakPtr(),
                        std::move(callback)));
+    // XXX this can lead to an infinite loop if we fail to create the buffer :(
     return;
   }
+
+  // XXX consider snapshotting the complete config before going off to read
+  // the file.
 
   std::vector<std::string> hosts(host_exclusions_.size());
   std::copy(host_exclusions_.begin(), host_exclusions_.end(), hosts.begin());
@@ -161,7 +167,7 @@ void ContentFilterRulesConfig::ConfigChanged() {
 void ContentFilterRulesConfig::NotifyAllObservers() {
   is_notify_pending_ = false;
   for (auto& observer : observers_) {
-    observer.OnChanged();
+    observer.OnContentFilterRulesConfigChanged();
   }
 }
 
@@ -200,6 +206,7 @@ void ContentFilterRulesConfig::DidReadRulesFile(
   // these buffers to enable that. Using mmap to "read" the files would also
   // solve this.
   rules_file_buffer_ = std::move(buffer);
+  // XXX handle errors
 
   // No need to worry about re-entrancy during these callbacks given the
   // PostTask in Snapshot.

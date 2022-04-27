@@ -42,8 +42,9 @@ void ContentFilteringService::Log(const std::string& message) {
 
 void ContentFilteringService::GetRulesProvider(
     mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver) {
-  mojo::MakeSelfOwnedReceiver(std::make_unique<ContentFilterRulesProvider>(),
-                              std::move(receiver));
+  mojo::MakeSelfOwnedReceiver(
+      std::make_unique<ContentFilterRulesProvider>(render_process_id_),
+      std::move(receiver));
 }
 
 void ContentFilteringService::OnContentFiltered(

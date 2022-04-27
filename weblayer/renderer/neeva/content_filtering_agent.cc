@@ -67,6 +67,8 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
+  // TODO: Apply top_level_host_exclusions
+
   if (!matcher_->FindMatch(
           url, first_party_origin, element_type,
           url_pattern_index::proto::ACTIVATION_TYPE_UNSPECIFIED,
@@ -124,16 +126,18 @@ void ContentFilteringAgent::OnApplyNewRules(
 
     rules_ = std::move(new_rules);
 
-    rules_data_mapping_ =
-        rules_->url_pattern_data->Map(rules_->url_pattern_data->GetSize());
+    // Disabled if no filter data has been provided.
+    if (rules_->url_pattern_data) {
+      rules_data_mapping_ =
+          rules_->url_pattern_data->Map(rules_->url_pattern_data->GetSize());
 
-    const url_pattern_index::flat::UrlPatternIndex* flat_index =
-        url_pattern_index::flat::GetUrlPatternIndex(rules_data_mapping_.get());
-    matcher_ =
-        std::make_unique<url_pattern_index::UrlPatternIndexMatcher>(flat_index);
+      matcher_ = std::make_unique<url_pattern_index::UrlPatternIndexMatcher>(
+          url_pattern_index::flat::GetUrlPatternIndex(
+              rules_data_mapping_.get()));
 
-    auto count = matcher_->GetRulesCount();
-    Log(base::StringPrintf("%lu rules", count));
+      auto count = matcher_->GetRulesCount();
+      Log(base::StringPrintf("%lu rules", count));
+    }
   }
 
   // Kick-off another hanging refresh, waiting for the browser-side to let us know

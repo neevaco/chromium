@@ -50,7 +50,7 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
 
   class Observer : public base::CheckedObserver {
    public:
-    virtual void OnChanged() = 0;
+    virtual void OnContentFilterRulesConfigChanged() = 0;
   };
 
   void AddObserver(Observer* observer);
