@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "base/callback.h"
+#include "base/files/file.h"
 #include "base/memory/ptr_util.h"
 #include "base/task/post_task.h"
 #include "base/threading/sequenced_task_runner_handle.h"
@@ -17,7 +18,33 @@ namespace {
 
 mojo::ScopedSharedBufferHandle ReadFileToBuffer(
     const base::FilePath& file_path) {
-  return mojo::ScopedSharedBufferHandle();  // XXX
+  // TODO: Figure out how to just mmap the file instead of copying it here!
+
+  base::File file(file_path, base::File::FLAG_OPEN | base::File::FLAG_READ);
+  int64_t size = file.GetLength();
+  if (size < 0) {
+    LOG(ERROR) << "Could not read file: " << file_path;
+    return mojo::ScopedSharedBufferHandle();
+  }
+
+  auto buffer = mojo::SharedBufferHandle::Create(size);
+  if (!buffer) {
+    LOG(ERROR) << "Could not allocate buffer";
+    return mojo::ScopedSharedBufferHandle();
+  }
+
+  auto mapping = buffer->Map(size);
+  if (!mapping) {
+    LOG(ERROR) << "Could not map buffer";
+    return mojo::ScopedSharedBufferHandle();
+  }
+
+  if (file.ReadAtCurrentPos(static_cast<char*>(mapping.get()), size) == -1) {
+    LOG(ERROR) << "Could not read file";
+    return mojo::ScopedSharedBufferHandle();
+  }
+
+  return buffer;
 }
 
 }  // namespace
@@ -166,6 +193,14 @@ void ContentFilterRulesConfig::DidReadRulesFile(
     DoReadRulesFile();
     return;
   }
+
+  // Cache the memory buffer here.
+  // TODO: Would be ideal to have a way to share this across multiple profiles,
+  // especially with the incognito profile. We can build a separate cache for
+  // these buffers to enable that. Using mmap to "read" the files would also
+  // solve this.
+  rules_file_buffer_ = std::move(buffer);
+
   // No need to worry about re-entrancy during these callbacks given the
   // PostTask in Snapshot.
   while (!read_rules_file_continuations_.empty()) {
