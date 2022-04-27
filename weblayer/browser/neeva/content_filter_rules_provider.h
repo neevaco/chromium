@@ -1,16 +1,16 @@
-// Copyright Neeva. All rights reserved.
+// Copyright 2022 Neeva. All rights reserved.
 
 #ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_PROVIDER_H_
 #define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_PROVIDER_H_
 
+#include "base/memory/weak_ptr.h"
 #include "weblayer/browser/neeva/content_filter_rules_config.h"
 #include "weblayer/common/neeva/content_filtering_service.mojom.h"
 
 namespace weblayer {
 namespace neeva {
 
-class ContentFilterRulesProvider : public mojom::ContentFilterRulesProvider,
-                                   public ContentFilterRulesConfig::Observer {
+class ContentFilterRulesProvider : public mojom::ContentFilterRulesProvider {
  public:
   explicit ContentFilterRulesProvider(int render_process_id);
   ~ContentFilterRulesProvider() override;
@@ -19,13 +19,12 @@ class ContentFilterRulesProvider : public mojom::ContentFilterRulesProvider,
   void RefreshRules(
       int64_t current_generation_num, RefreshRulesCallback callback) override;
 
-  // ContentFilterRulesConfig::Observer:
-  void OnContentFilterRulesConfigChanged() override;
-
  private:
-  RefreshRulesCallback refresh_rules_callback_;
+  void SendRulesToClient(RefreshRulesCallback callback) const;
+
   base::WeakPtr<ContentFilterRulesConfig> config_;
-  int64_t generation_num_ = 1;
+
+  base::WeakPtrFactory<ContentFilterRulesProvider> weak_factory_{this};
 };
 
 }  // namespace neeva

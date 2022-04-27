@@ -114,68 +114,74 @@ void ContentFilterRulesConfig::StopFiltering() {
   ConfigChanged();
 }
 
-void ContentFilterRulesConfig::Snapshot(
-    base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback) {
-  // Read the rules file into memory if needed.
-  if (!rules_file_buffer_) {
-    ReadRulesFile(
-        base::BindOnce(&ContentFilterRulesConfig::CompleteSnapshot,
-                       GetWeakPtr(), std::move(callback)));
-    return;
+mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
+  mojom::ContentFilterRulesPtr result;
+  if (is_filtering_enabled_ && rules_) {
+    result = mojom::ContentFilterRules::New();
+    result->mode = rules_->mode;
+    result->top_level_host_exclusions = rules_->top_level_host_exclusions;
+    if (rules_->url_pattern_data) {
+      result->url_pattern_data = rules_->url_pattern_data->Clone(
+          mojo::SharedBufferHandle::AccessMode::READ_ONLY);
+    }
   }
-  CompleteSnapshot(std::move(callback));
+  return result;
 }
 
-void ContentFilterRulesConfig::CompleteSnapshot(
-    base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback) {
-  auto rules = mojom::ContentFilterRules::New();
-  rules->mode = mode_;
-
-  std::vector<std::string> hosts(host_exclusions_.size());
-  std::copy(host_exclusions_.begin(), host_exclusions_.end(), hosts.begin());
-  rules->top_level_host_exclusions = std::move(hosts);
-
-  // If the buffer is null at this point, then it means there was an error
-  // trying to read the rules file. If the file was changed via SetRulesFile,
-  // then we would have tried reading that new file. See DidReadRulesFile.
-  // Passing rules to a client with an empty buffer tells the client to
-  // disable filtering.
-  if (rules_file_buffer_) {
-    rules->url_pattern_data = rules_file_buffer_->Clone(
-        mojo::SharedBufferHandle::AccessMode::READ_ONLY);
-  }
-
-  // Always dispatch the callback asynchronously so the caller is invoked
-  // consistently.
-  base::SequencedTaskRunnerHandle::Get()->PostTask(
-      FROM_HERE, base::BindOnce(std::move(callback), std::move(rules)));
-}
-
-void ContentFilterRulesConfig::AddObserver(Observer* observer) {
-  observers_.AddObserver(observer);
-}
-
-void ContentFilterRulesConfig::RemoveObserver(Observer* observer) {
-  observers_.RemoveObserver(observer);
+void ContentFilterRulesConfig::NotifyOnRulesUpdate(base::OnceClosure callback) {
+  rules_update_callbacks_.push(std::move(callback));
 }
 
 ContentFilterRulesConfig::ContentFilterRulesConfig() = default;
 
 void ContentFilterRulesConfig::ConfigChanged() {
-  // Notify asynchronously so that multiple back-to-back calls to ConfigChanged
-  // get coalesced into a single notification to observers.
-  if (is_notify_pending_)
+  ++config_generation_num_;
+
+  if (is_update_pending_) {
     return;
-  is_notify_pending_ = true;
+  }
+  is_update_pending_ = true;
+
+  // Start regenerating rules asynchronously in case other ConfigChanged calls
+  // come in immediately following this one. That way they all get batched up
+  // together into a single update. Pass along the generation number of the
+  // config so we can see when we get done if the configuration has since
+  // changed.
   base::SequencedTaskRunnerHandle::Get()->PostTask(
       FROM_HERE,
-      base::BindOnce(&ContentFilterRulesConfig::NotifyAllObservers, GetWeakPtr()));
+      base::BindOnce(&ContentFilterRulesConfig::StartUpdate, GetWeakPtr()));
 }
 
-void ContentFilterRulesConfig::NotifyAllObservers() {
-  is_notify_pending_ = false;
-  for (auto& observer : observers_) {
-    observer.OnContentFilterRulesConfigChanged();
+void ContentFilterRulesConfig::StartUpdate() {
+  // Read the rules file into memory if needed.
+  if (!rules_file_buffer_) {
+    ReadRulesFile(
+        base::BindOnce(&ContentFilterRulesConfig::FinishUpdate, GetWeakPtr()));
+    return;
+  }
+  FinishUpdate();
+}
+
+void ContentFilterRulesConfig::FinishUpdate() {
+  is_update_pending_ = false;
+  rules_generation_num_ = config_generation_num_;
+
+  // If the buffer is null at this point, then it means there was an error
+  // trying to read the rules file. If the file was changed via SetRulesFile,
+  // then we would have tried reading that new file. See DidReadRulesFile.
+
+  if (rules_file_buffer_) {
+    rules_ = mojom::ContentFilterRules::New();
+    rules_->mode = mode_;
+
+    std::vector<std::string> hosts(host_exclusions_.size());
+    std::copy(host_exclusions_.begin(), host_exclusions_.end(), hosts.begin());
+    rules_->top_level_host_exclusions = std::move(hosts);
+
+    rules_->url_pattern_data = rules_file_buffer_->Clone(
+        mojo::SharedBufferHandle::AccessMode::READ_ONLY);
+  } else {
+    rules_.reset();
   }
 }
 

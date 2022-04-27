@@ -41,20 +41,19 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   void StartFiltering();
   void StopFiltering();
 
-  bool is_filtering_enabled() const { return is_filtering_enabled_; }
+  //bool is_filtering_enabled() const { return is_filtering_enabled_; }
 
-  // Builds a snapshot of the current configuration. Runs asynchronously
-  // due to file processing required.
-  void Snapshot(
-      base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback);
+  // Returns the generation number for the rules. This value is incremented
+  // each time the rules are updated. Returns 0 initially, before the initial
+  // rules are populated.
+  int64_t rules_generation_num() const { return rules_generation_num_; }
 
-  class Observer : public base::CheckedObserver {
-   public:
-    virtual void OnContentFilterRulesConfigChanged() = 0;
-  };
+  // Returns current rules. Return nullptr if there are no rules / if filtering
+  // is disabled.
+  mojom::ContentFilterRulesPtr GetRules() const;
 
-  void AddObserver(Observer* observer);
-  void RemoveObserver(Observer* observer);
+  // Notify callback when new rules are available.
+  void NotifyOnRulesUpdate(base::OnceClosure callback);
 
   // Enable clients to get a WeakPtr to instances. This allows observers to
   // safely hold a reference to the config.
@@ -67,6 +66,9 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
 
   ContentFilterRulesConfig();
   void ConfigChanged();
+  void StartUpdate();
+  void FinishUpdate();
+
   void NotifyAllObservers();
   void CompleteSnapshot(
       base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback);
@@ -80,14 +82,20 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   }
 
   base::FilePath rules_file_;
-  mojo::ScopedSharedBufferHandle rules_file_buffer_;
   mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;
   std::set<std::string> host_exclusions_;
   bool is_filtering_enabled_ = false;
-  bool is_notify_pending_ = false;
-  std::queue<base::OnceClosure> read_rules_file_continuations_;
 
-  base::ObserverList<Observer> observers_;
+  bool is_update_pending_ = false;
+
+  // Incremented each time the configuration is changed.
+  int64_t config_generation_num_ = 0;
+
+  mojo::ScopedSharedBufferHandle rules_file_buffer_;
+  mojom::ContentFilterRulesPtr rules_;
+  int64_t rules_generation_num_ = 0;
+  std::queue<base::OnceClosure> read_rules_file_continuations_;
+  std::queue<base::OnceClosure> rules_update_callbacks_;
 
   base::WeakPtrFactory<ContentFilterRulesConfig> weak_factory_{this};
 };
