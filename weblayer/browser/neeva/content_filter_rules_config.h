@@ -3,6 +3,7 @@
 #ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
 #define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
 
+#include <queue>
 #include <set>
 #include <string>
 
@@ -11,6 +12,7 @@
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list.h"
 #include "base/supports_user_data.h"
+#include "mojo/public/cpp/system/buffer.h"
 #include "weblayer/common/neeva/content_filtering_service.mojom.h"
 
 namespace content {
@@ -66,12 +68,22 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   ContentFilterRulesConfig();
   void ConfigChanged();
   void NotifyAllObservers();
+  void ReadRulesFile(base::OnceClosure continuation);
+  void DoReadRulesFile();
+  void DidReadRulesFile(
+      base::FilePath rules_file_read, mojo::ScopedSharedBufferHandle buffer);
+
+  bool is_reading_rules_file() const {
+    return !read_rules_file_continuations_.empty();
+  }
 
   base::FilePath rules_file_;
+  mojo::ScopedSharedBufferHandle rules_file_buffer_;
   mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;
   std::set<std::string> host_exclusions_;
   bool is_filtering_enabled_ = false;
   bool is_notify_pending_ = false;
+  std::queue<base::OnceClosure> read_rules_file_continuations_;
 
   base::ObserverList<Observer> observers_;
 
