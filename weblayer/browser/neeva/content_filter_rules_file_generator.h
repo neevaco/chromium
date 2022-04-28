@@ -5,6 +5,10 @@
 
 #include "base/callback_forward.h"
 
+namespace base {
+class FilePath;
+}
+
 namespace weblayer {
 namespace neeva {
 

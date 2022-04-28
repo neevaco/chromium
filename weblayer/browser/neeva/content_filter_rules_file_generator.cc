@@ -2,6 +2,9 @@
 
 #include "weblayer/browser/neeva/content_filter_rules_file_generator.h"
 
+#include "base/callback.h"
+#include "base/files/file_path.h"
+
 namespace weblayer {
 namespace neeva {
 
