@@ -12,6 +12,7 @@
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list.h"
 #include "base/supports_user_data.h"
+#include "mojo/public/cpp/bindings/receiver_set.h"
 #include "mojo/public/cpp/system/buffer.h"
 #include "weblayer/common/neeva/content_filtering_service.mojom.h"
 
@@ -24,7 +25,8 @@ namespace neeva {
 
 // Stored on each content::BrowserContext and holds the current rules
 // configuration.
-class ContentFilterRulesConfig : public base::SupportsUserData::Data {
+class ContentFilterRulesConfig : public base::SupportsUserData::Data,
+                                 public mojom::ContentFilterRulesProvider {
  public:
   ~ContentFilterRulesConfig() override;
 
@@ -41,25 +43,18 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   void StartFiltering();
   void StopFiltering();
 
-  //bool is_filtering_enabled() const { return is_filtering_enabled_; }
-
-  // Returns the generation number for the rules. This value is incremented
-  // each time the rules are updated. Returns 0 initially, before the initial
-  // rules are populated.
   int64_t rules_generation_num() const { return rules_generation_num_; }
 
   // Returns current rules. Return nullptr if there are no rules / if filtering
   // is disabled.
   mojom::ContentFilterRulesPtr GetRules() const;
 
-  // Notify callback when new rules are available.
-  void NotifyOnRulesUpdate(base::OnceClosure callback);
+  void AddReceiver(
+      mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver);
 
-  // Enable clients to get a WeakPtr to instances. This allows observers to
-  // safely hold a reference to the config.
-  base::WeakPtr<ContentFilterRulesConfig> GetWeakPtr() {
-    return weak_factory_.GetWeakPtr();
-  }
+  // mojom::ContentFilterRulesProvider methods:
+  void RefreshRules(
+      int64_t current_generation_num, RefreshRulesCallback callback) override;
 
  private:
   static const int kUserDataKey = 0;
@@ -71,17 +66,24 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   void ReadRulesFile();
   void DidReadRulesFile(
       base::FilePath rules_file_read, mojo::ScopedSharedBufferHandle buffer);
+  void SendRulesToClient(RefreshRulesCallback callback) const;
 
   base::FilePath rules_file_;
+  mojo::ScopedSharedBufferHandle rules_file_buffer_;
+
   mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;
   std::set<std::string> host_exclusions_;
   bool is_filtering_enabled_ = false;
   bool is_update_pending_ = false;
 
-  mojo::ScopedSharedBufferHandle rules_file_buffer_;
-  mojom::ContentFilterRulesPtr rules_;
+  // This value is incremented each time the rules are updated. Initialized
+  // to 0 to signify that rules_ are not generated yet.
   int64_t rules_generation_num_ = 0;
+
+  mojom::ContentFilterRulesPtr rules_;
   std::vector<base::OnceClosure> rules_update_callbacks_;
+
+  mojo::ReceiverSet<mojom::ContentFilterRulesProvider> receiver_set_;
 
   base::WeakPtrFactory<ContentFilterRulesConfig> weak_factory_{this};
 };

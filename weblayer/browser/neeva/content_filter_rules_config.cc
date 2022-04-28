@@ -128,8 +128,20 @@ mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
   return result;
 }
 
-void ContentFilterRulesConfig::NotifyOnRulesUpdate(base::OnceClosure callback) {
-  rules_update_callbacks_.push_back(std::move(callback));
+void ContentFilterRulesConfig::AddReceiver(
+    mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver) {
+  receiver_set_.Add(this, std::move(receiver));
+}
+
+void ContentFilterRulesConfig::RefreshRules(
+    int64_t current_generation_num, RefreshRulesCallback callback) {
+  if (rules_generation_num_ == current_generation_num) {
+    rules_update_callbacks_.push_back(
+        base::BindOnce(&ContentFilterRulesConfig::SendRulesToClient,
+                       weak_factory_.GetWeakPtr(), std::move(callback)));
+  } else {
+    SendRulesToClient(std::move(callback));
+  }
 }
 
 ContentFilterRulesConfig::ContentFilterRulesConfig() = default;
@@ -145,7 +157,8 @@ void ContentFilterRulesConfig::ConfigChanged() {
   // together into a single update.
   base::SequencedTaskRunnerHandle::Get()->PostTask(
       FROM_HERE,
-      base::BindOnce(&ContentFilterRulesConfig::StartUpdate, GetWeakPtr()));
+      base::BindOnce(&ContentFilterRulesConfig::StartUpdate,
+                     weak_factory_.GetWeakPtr()));
 }
 
 void ContentFilterRulesConfig::StartUpdate() {
@@ -192,8 +205,8 @@ void ContentFilterRulesConfig::ReadRulesFile() {
       FROM_HERE,
       { base::MayBlock(), base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN },
       base::BindOnce(&ReadFileToBuffer, rules_file_),
-      base::BindOnce(&ContentFilterRulesConfig::DidReadRulesFile, GetWeakPtr(),
-                     rules_file_));
+      base::BindOnce(&ContentFilterRulesConfig::DidReadRulesFile,
+                     weak_factory_.GetWeakPtr(), rules_file_));
 }
 
 void ContentFilterRulesConfig::DidReadRulesFile(
@@ -213,6 +226,11 @@ void ContentFilterRulesConfig::DidReadRulesFile(
   rules_file_buffer_ = std::move(buffer);
 
   FinishUpdate();
+}
+
+void ContentFilterRulesConfig::SendRulesToClient(
+    RefreshRulesCallback callback) const {
+  std::move(callback).Run(rules_generation_num_, GetRules());
 }
 
 }  // namespace neeva

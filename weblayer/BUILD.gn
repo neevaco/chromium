@@ -237,8 +237,6 @@ source_set("weblayer_lib_base") {
     "browser/neeva/content_filter_client.h",
     "browser/neeva/content_filter_rules_config.cc",
     "browser/neeva/content_filter_rules_config.h",
-    "browser/neeva/content_filter_rules_provider.cc",
-    "browser/neeva/content_filter_rules_provider.h",
     "browser/neeva/content_filter_stats.cc",
     "browser/neeva/content_filter_stats.h",
     "browser/neeva/content_filtering_service.cc",

@@ -6,10 +6,11 @@
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/render_process_host.h"
 #include "content/public/browser/web_contents.h"
 #include "mojo/public/cpp/bindings/self_owned_receiver.h"
 #include "weblayer/browser/neeva/content_filter_client.h"
-#include "weblayer/browser/neeva/content_filter_rules_provider.h"
+#include "weblayer/browser/neeva/content_filter_rules_config.h"
 #include "weblayer/browser/neeva/content_filter_stats.h"
 
 namespace weblayer {
@@ -42,8 +43,12 @@ void ContentFilteringService::Log(const std::string& message) {
 
 void ContentFilteringService::GetRulesProvider(
     mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver) {
-  mojo::MakeSelfOwnedReceiver(
-      std::make_unique<ContentFilterRulesProvider>(render_process_id_),
+  auto* rph = content::RenderProcessHost::FromID(render_process_id_);
+  if (!rph) {
+    LOG(ERROR) << "No RenderProcessHost for ID";
+    return;
+  }
+  ContentFilterRulesConfig::GetOrCreate(rph->GetBrowserContext())->AddReceiver(
       std::move(receiver));
 }
 
