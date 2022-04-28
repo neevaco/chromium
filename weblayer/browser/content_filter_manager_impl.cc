@@ -3,12 +3,16 @@
 #include "weblayer/browser/content_filter_manager_impl.h"
 
 #include "base/callback.h"
+#include "base/files/file_path.h"
 #include "base/memory/ptr_util.h"
 #include "content/public/browser/browser_context.h"
 #include "weblayer/browser/neeva/content_filter_rules_config.h"
+#include "weblayer/browser/neeva/content_filter_rules_file_generator.h"
 
 #if BUILDFLAG(IS_ANDROID)
+#include "base/android/callback_android.h"
 #include "base/android/jni_string.h"
+#include "base/android/scoped_java_ref.h"
 #include "weblayer/browser/java/jni/ContentFilterManagerImpl_jni.h"
 #endif
 
@@ -37,7 +41,11 @@ void ContentFilterManagerImpl::GenerateRulesFile(
     const base::android::JavaParamRef<jstring>& input_file,
     const base::android::JavaParamRef<jstring>& output_file,
     const base::android::JavaParamRef<jobject>& callback) {
-  // XXX
+  neeva::ContentFilterRulesFileGenerator::Generate(
+      base::FilePath(ConvertJavaStringToUTF8(input_file)),
+      base::FilePath(ConvertJavaStringToUTF8(output_file)),
+      base::BindOnce(&base::android::RunBooleanCallbackAndroid,
+                     base::android::ScopedJavaGlobalRef<jobject>(callback)));
 }
 
 void ContentFilterManagerImpl::SetRulesFile(

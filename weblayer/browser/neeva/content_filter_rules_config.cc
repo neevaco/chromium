@@ -20,7 +20,7 @@ mojo::ScopedSharedBufferHandle ReadFileToBuffer(
     const base::FilePath& file_path) {
   // TODO: Figure out how to just mmap the file instead of copying it here!
   // Looks like we can use `mojo::WrapPlatformSharedMemoryRegion` for this.
-  // We should be able to use PlatformSharedMemoryRegion::Take()
+  // We should be able to use PlatformSharedMemoryRegion::Take().
 
   base::File file(file_path, base::File::FLAG_OPEN | base::File::FLAG_READ);
   int64_t size = file.GetLength();

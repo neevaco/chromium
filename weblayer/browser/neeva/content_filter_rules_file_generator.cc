@@ -1,57 +1,19 @@
 // Copyright 2022 Neeva. All rights reserved.
 
-#include "weblayer/browser/neeva/content_filter_rules_provider.h"
-
-#include "base/logging.h"
-//#include "components/url_pattern_index/url_pattern_index.h"
-#include "content/public/browser/render_process_host.h"
-//#include "mojo/public/cpp/system/buffer.h"
-//#include "url/gurl.h"
-//#include "url/origin.h"
+#include "weblayer/browser/neeva/content_filter_rules_file_generator.h"
 
 namespace weblayer {
 namespace neeva {
 
-ContentFilterRulesProvider::ContentFilterRulesProvider(int render_process_id) {
-  auto* rph = content::RenderProcessHost::FromID(render_process_id);
-  if (!rph) {
-    LOG(ERROR) << "No RenderProcessHost for ID";
-    return;
-  }
-  config_ = ContentFilterRulesConfig::GetOrCreate(rph->GetBrowserContext())->
-      GetWeakPtr();
-}
-
-ContentFilterRulesProvider::~ContentFilterRulesProvider() = default;
-
-void ContentFilterRulesProvider::RefreshRules(
-    int64_t current_generation_num, RefreshRulesCallback callback) {
-  LOG(ERROR) << ">>> RefreshRules()";
-
-  // XXX how should we handle this case?
-  // XXX perhaps this class should just go away and be part of ContentFilterRulesConfig
-  if (!config_)
-    return;
-
-  if (config_->rules_generation_num() == current_generation_num) {
-    config_->NotifyOnRulesUpdate(
-        base::BindOnce(&ContentFilterRulesProvider::SendRulesToClient,
-                       weak_factory_.GetWeakPtr(), std::move(callback)));
-    return;
-  }
-
-  SendRulesToClient(std::move(callback));
-}
-
-void ContentFilterRulesProvider::SendRulesToClient(
-    RefreshRulesCallback callback) const {
-  DCHECK(config_);
-  std::move(callback).Run(config_->rules_generation_num(), config_->GetRules());
+// static
+void ContentFilterRulesFileGenerator::Generate(
+    const base::FilePath& input_file,
+    const base::FilePath& output_file,
+    base::OnceCallback<void(bool)> callback) {
+  // TODO: implement me!
 }
 
 #if 0
-  // TODO: implement me!
-
   // XXX test out with some basic data... and validate that we are
   // getting the right outcome.
 
