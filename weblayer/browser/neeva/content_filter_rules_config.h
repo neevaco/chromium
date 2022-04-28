@@ -68,33 +68,19 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   void ConfigChanged();
   void StartUpdate();
   void FinishUpdate();
-
-  void NotifyAllObservers();
-  void CompleteSnapshot(
-      base::OnceCallback<void(mojom::ContentFilterRulesPtr)> callback);
-  void ReadRulesFile(base::OnceClosure continuation);
-  void DoReadRulesFile();
+  void ReadRulesFile();
   void DidReadRulesFile(
       base::FilePath rules_file_read, mojo::ScopedSharedBufferHandle buffer);
-
-  bool is_reading_rules_file() const {
-    return !read_rules_file_continuations_.empty();
-  }
 
   base::FilePath rules_file_;
   mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;
   std::set<std::string> host_exclusions_;
   bool is_filtering_enabled_ = false;
-
   bool is_update_pending_ = false;
-
-  // Incremented each time the configuration is changed.
-  int64_t config_generation_num_ = 0;
 
   mojo::ScopedSharedBufferHandle rules_file_buffer_;
   mojom::ContentFilterRulesPtr rules_;
   int64_t rules_generation_num_ = 0;
-  std::queue<base::OnceClosure> read_rules_file_continuations_;
   std::queue<base::OnceClosure> rules_update_callbacks_;
 
   base::WeakPtrFactory<ContentFilterRulesConfig> weak_factory_{this};

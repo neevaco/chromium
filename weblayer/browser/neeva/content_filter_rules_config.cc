@@ -135,8 +135,6 @@ void ContentFilterRulesConfig::NotifyOnRulesUpdate(base::OnceClosure callback) {
 ContentFilterRulesConfig::ContentFilterRulesConfig() = default;
 
 void ContentFilterRulesConfig::ConfigChanged() {
-  ++config_generation_num_;
-
   if (is_update_pending_) {
     return;
   }
@@ -144,9 +142,7 @@ void ContentFilterRulesConfig::ConfigChanged() {
 
   // Start regenerating rules asynchronously in case other ConfigChanged calls
   // come in immediately following this one. That way they all get batched up
-  // together into a single update. Pass along the generation number of the
-  // config so we can see when we get done if the configuration has since
-  // changed.
+  // together into a single update.
   base::SequencedTaskRunnerHandle::Get()->PostTask(
       FROM_HERE,
       base::BindOnce(&ContentFilterRulesConfig::StartUpdate, GetWeakPtr()));
@@ -155,8 +151,7 @@ void ContentFilterRulesConfig::ConfigChanged() {
 void ContentFilterRulesConfig::StartUpdate() {
   // Read the rules file into memory if needed.
   if (!rules_file_buffer_) {
-    ReadRulesFile(
-        base::BindOnce(&ContentFilterRulesConfig::FinishUpdate, GetWeakPtr()));
+    ReadRulesFile();
     return;
   }
   FinishUpdate();
@@ -164,12 +159,10 @@ void ContentFilterRulesConfig::StartUpdate() {
 
 void ContentFilterRulesConfig::FinishUpdate() {
   is_update_pending_ = false;
-  rules_generation_num_ = config_generation_num_;
 
   // If the buffer is null at this point, then it means there was an error
   // trying to read the rules file. If the file was changed via SetRulesFile,
   // then we would have tried reading that new file. See DidReadRulesFile.
-
   if (rules_file_buffer_) {
     rules_ = mojom::ContentFilterRules::New();
     rules_->mode = mode_;
@@ -183,20 +176,13 @@ void ContentFilterRulesConfig::FinishUpdate() {
   } else {
     rules_.reset();
   }
+
+  ++rules_generation_num_;
 }
 
-void ContentFilterRulesConfig::ReadRulesFile(base::OnceClosure continuation) {
-  // There could be multiple overlapped calls to ReadRulesFile, and in that case
-  // we just queue up the extra continuations. They will all get notified when
-  // the file is read.
-  bool needs_read = !is_reading_rules_file();
-  read_rules_file_continuations_.push(std::move(continuation));
-  if (!needs_read)
-    return;
-  DoReadRulesFile();
-}
-
-void ContentFilterRulesConfig::DoReadRulesFile() {
+void ContentFilterRulesConfig::ReadRulesFile() {
+  // Capture the current value of rules_file_ and pass to DidReadRulesFile so
+  // we can test if the file path changed while we were away.
   base::PostTaskAndReplyWithResult(
       FROM_HERE,
       { base::MayBlock(), base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN },
@@ -210,7 +196,7 @@ void ContentFilterRulesConfig::DidReadRulesFile(
   // The value of rules_file_ may have changed while we were away. If so, then
   // start over and try again.
   if (rules_file_read != rules_file_) {
-    DoReadRulesFile();
+    ReadRulesFile();
     return;
   }
 
@@ -221,12 +207,7 @@ void ContentFilterRulesConfig::DidReadRulesFile(
   // solve this.
   rules_file_buffer_ = std::move(buffer);
 
-  // No need to worry about re-entrancy during these callbacks given the
-  // PostTask in Snapshot.
-  while (!read_rules_file_continuations_.empty()) {
-    std::move(read_rules_file_continuations_.front()).Run();
-    read_rules_file_continuations_.pop();
-  }
+  FinishUpdate();
 }
 
 }  // namespace neeva
