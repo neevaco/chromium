@@ -3,9 +3,9 @@
 #ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
 #define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
 
-#include <queue>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "base/callback_forward.h"
 #include "base/files/file_path.h"
@@ -81,7 +81,7 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   mojo::ScopedSharedBufferHandle rules_file_buffer_;
   mojom::ContentFilterRulesPtr rules_;
   int64_t rules_generation_num_ = 0;
-  std::queue<base::OnceClosure> rules_update_callbacks_;
+  std::vector<base::OnceClosure> rules_update_callbacks_;
 
   base::WeakPtrFactory<ContentFilterRulesConfig> weak_factory_{this};
 };

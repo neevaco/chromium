@@ -129,7 +129,7 @@ mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
 }
 
 void ContentFilterRulesConfig::NotifyOnRulesUpdate(base::OnceClosure callback) {
-  rules_update_callbacks_.push(std::move(callback));
+  rules_update_callbacks_.push_back(std::move(callback));
 }
 
 ContentFilterRulesConfig::ContentFilterRulesConfig() = default;
@@ -178,6 +178,11 @@ void ContentFilterRulesConfig::FinishUpdate() {
   }
 
   ++rules_generation_num_;
+
+  auto callbacks = std::move(rules_update_callbacks_);
+  for (auto& callback : callbacks) {
+    std::move(callback).Run();
+  }
 }
 
 void ContentFilterRulesConfig::ReadRulesFile() {
