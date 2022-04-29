@@ -25,13 +25,15 @@ bool IsThirdParty(const GURL& url, const url::Origin& first_party_origin) {
 std::unique_ptr<base::MemoryMappedFile> MapRegion(
     mojo::ScopedHandle data_handle,
     uint64_t offset,
-    uint64_t size) {
-
+    uint64_t size,
+    ContentFilteringAgent* agent) {
   base::ScopedPlatformFile data_fd;
   if (mojo::UnwrapPlatformFile(std::move(data_handle), &data_fd)
           != MOJO_RESULT_OK) {
     return nullptr;
   }
+
+  agent->Log("Did UnwrapPlatformFile");
 
   base::MemoryMappedFile::Region region;
   region.offset = static_cast<int64_t>(offset);
@@ -40,6 +42,8 @@ std::unique_ptr<base::MemoryMappedFile> MapRegion(
   std::unique_ptr<base::MemoryMappedFile> memory_mapped_file;
   if (!memory_mapped_file->Initialize(base::File(std::move(data_fd)), region))
     return nullptr;
+
+  agent->Log("Did Initialize");
 
   return memory_mapped_file;
 }
@@ -91,6 +95,8 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
   }
 
   // TODO: Apply top_level_host_exclusions
+
+  const_cast<ContentFilteringAgent*>(this)->Log("Calling FindMatch");
 
   if (!matcher_->FindMatch(
           url, first_party_origin, element_type,
@@ -149,13 +155,27 @@ void ContentFilteringAgent::OnApplyNewRules(
     rules_ = std::move(new_rules);
     rules_data_ = MapRegion(std::move(rules_->rules_data_fd),
                             rules_->rules_data_offset,
-                            rules_->rules_data_size);
+                            rules_->rules_data_size,
+                            this);
     if (rules_data_) {
+      Log("Mapped the region");
+      sleep(1);
+
+      const uint8_t* rp = rules_data_->data() + rules_->rules_data_offset; 
+      const uint8_t* re = rp + rules_->rules_data_size;
+      for (; rp != re; ++rp) {}
+      Log("Touched all of the data!");
+      sleep(1);
+
+      /*
       matcher_ = std::make_unique<url_pattern_index::UrlPatternIndexMatcher>(
           url_pattern_index::flat::GetUrlPatternIndex(rules_data_->data()));
 
       auto count = matcher_->GetRulesCount();
       Log(base::StringPrintf("%lu rules", count));
+      */
+    } else {
+      Log("Mapping the region failed!");
     }
   }
 
