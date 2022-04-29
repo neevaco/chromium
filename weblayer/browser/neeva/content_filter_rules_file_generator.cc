@@ -108,6 +108,8 @@ class Generator {
 
     proto::UrlPatternType pattern_type;
     if (base::StartsWith(pattern, "/") && base::EndsWith(pattern, "/")) {
+      // Note: Regexps are not yet supported by UrlPatternIndexBuilder, but
+      // we parse them anyways.
       pattern_type = proto::URL_PATTERN_TYPE_REGEXP;
       pattern.erase(0, 1);
       pattern.erase(pattern.size() - 1, 1);
@@ -120,10 +122,8 @@ class Generator {
 
     std::vector<std::string> domains;
     proto::SourceType source_type = proto::SOURCE_TYPE_ANY;
-    proto::ElementType element_types = proto::ELEMENT_TYPE_UNSPECIFIED;
-    if (options.empty()) {
-      element_types = proto::ELEMENT_TYPE_ALL;
-    } else {
+    proto::ElementType element_types = proto::ELEMENT_TYPE_ALL;
+    if (!options.empty()) {
       const auto options_vector =
           base::SplitString(options, ",", base::KEEP_WHITESPACE,
                             base::SPLIT_WANT_NONEMPTY);
@@ -136,13 +136,15 @@ class Generator {
         proto::ElementType type = ToElementType(option, &negate);
         if (type != proto::ELEMENT_TYPE_UNSPECIFIED) {
           if (negate) {
-            if (element_types == proto::ELEMENT_TYPE_UNSPECIFIED)
-              element_types = proto::ELEMENT_TYPE_ALL;
             element_types =
                 static_cast<proto::ElementType>(element_types & ~type);
           } else {
-            element_types =
-                static_cast<proto::ElementType>(element_types | type);
+            if (element_types == proto::ELEMENT_TYPE_ALL) {
+              element_types = type;
+            } else {
+              element_types =
+                  static_cast<proto::ElementType>(element_types | type);
+            }
           }
         } else if (option == "third-party") {
           source_type = proto::SOURCE_TYPE_THIRD_PARTY;
