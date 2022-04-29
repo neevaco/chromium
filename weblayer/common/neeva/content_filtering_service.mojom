@@ -10,7 +10,11 @@ enum ContentFilterMode {
 struct ContentFilterRules {
   ContentFilterMode mode;
   array<string> top_level_host_exclusions;
-  handle<shared_buffer> url_pattern_data;
+
+  // Where the rules can be found.
+  handle rules_data_fd;
+  uint64 rules_data_offset;
+  uint64 rules_data_size;
 };
 
 struct ContentFilterAction {

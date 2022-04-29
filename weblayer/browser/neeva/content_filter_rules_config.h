@@ -35,7 +35,7 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data,
   static ContentFilterRulesConfig* GetOrCreate(
       content::BrowserContext* browser_context);
 
-  void SetRulesFile(const base::FilePath& rules_file);
+  void SetRulesFile(const std::string& rules_file_apk_path);
   void SetMode(mojom::ContentFilterMode mode);
   void AddHostExclusion(const std::string& host);
   void RemoveHostExclusion(const std::string& host);
@@ -61,27 +61,24 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data,
 
   ContentFilterRulesConfig();
   void ConfigChanged();
-  void StartUpdate();
-  void FinishUpdate();
-  void ReadRulesFile();
-  void DidReadRulesFile(
-      base::FilePath rules_file_read, mojo::ScopedSharedBufferHandle buffer);
+  void NotifyCallbacks();
   void SendRulesToClient(RefreshRulesCallback callback) const;
 
-  base::FilePath rules_file_;
-  mojo::ScopedSharedBufferHandle rules_file_buffer_;
+  //base::FilePath rules_file_;
+  //mojo::ScopedSharedBufferHandle rules_file_buffer_;
 
+  std::string rules_file_apk_path_;
   mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;
   std::set<std::string> host_exclusions_;
   bool is_filtering_enabled_ = false;
-  bool is_update_pending_ = false;
+  bool is_notify_pending_ = false;
 
   // This value is incremented each time the rules are updated. Initialized
   // to 0 to signify that rules_ are not generated yet.
   int64_t rules_generation_num_ = 0;
 
   mojom::ContentFilterRulesPtr rules_;
-  std::vector<base::OnceClosure> rules_update_callbacks_;
+  std::vector<base::OnceClosure> refresh_rules_callbacks_;
 
   mojo::ReceiverSet<mojom::ContentFilterRulesProvider> receiver_set_;
 

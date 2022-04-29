@@ -8,8 +8,6 @@ import org.chromium.weblayer_private.interfaces.IObjectWrapper;
  * Controls per-profile content filtering rules.
  */
 interface IContentFilterManager {
-  void generateRulesFile(in String inputFile, in String outputFile,
-                         in IObjectWrapper callback) = 0;
   void setRulesFile(in String rulesFile) = 1;
   void setMode(in int mode) = 2;
   void addHostExclusion(in String hostExclusion) = 3;

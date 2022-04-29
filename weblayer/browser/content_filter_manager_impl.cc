@@ -36,22 +36,10 @@ ContentFilterManagerImpl::ContentFilterManagerImpl(
 ContentFilterManagerImpl::~ContentFilterManagerImpl() = default;
 
 #if BUILDFLAG(IS_ANDROID)
-void ContentFilterManagerImpl::GenerateRulesFile(
-    JNIEnv* env,
-    const base::android::JavaParamRef<jstring>& input_file,
-    const base::android::JavaParamRef<jstring>& output_file,
-    const base::android::JavaParamRef<jobject>& callback) {
-  neeva::ContentFilterRulesFileGenerator::Generate(
-      base::FilePath(ConvertJavaStringToUTF8(input_file)),
-      base::FilePath(ConvertJavaStringToUTF8(output_file)),
-      base::BindOnce(&base::android::RunBooleanCallbackAndroid,
-                     base::android::ScopedJavaGlobalRef<jobject>(callback)));
-}
-
 void ContentFilterManagerImpl::SetRulesFile(
-    JNIEnv* env, const base::android::JavaParamRef<jstring>& rules_file) {
+    JNIEnv* env, const base::android::JavaParamRef<jstring>& apk_path) {
   neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_)->
-      SetRulesFile(base::FilePath(ConvertJavaStringToUTF8(rules_file)));
+      SetRulesFile(ConvertJavaStringToUTF8(apk_path));
 }
 
 void ContentFilterManagerImpl::SetMode(JNIEnv* env, int mode) {

@@ -30,33 +30,13 @@ public class ContentFilterManager {
     }
 
     /**
-     * Generate a binary representation of the Adblock Plus 1.1 format rules file.
-     *
-     * @param inputFile the text file specifying the filter rules.
-     * @param outputFile the path to the file that will be generated. This file can
-     * be stored by the application and later passed setRulesFile.
-     * @param callback receives a boolean intended if the generation succeeded.
-     */
-    public void generateRulesFile(@NonNull File inputFile, @NonNull File outputFile,
-                                  @NonNull Callback<Boolean> callback) {
-        ThreadCheck.ensureOnUiThread();
-        try {
-            ValueCallback<Boolean> valueCallback = (Boolean result) -> {
-                callback.onResult(result);
-            };
-            mImpl.generateRulesFile(inputFile.toString(), outputFile.toString(),
-                                    ObjectWrapper.wrap(valueCallback));
-        } catch (RemoteException e) {
-            throw new APICallException(e);
-        }
-    }
-
-    /**
      * Sets the given rules file as the active rules file.
+     * @param apkPath the relative path into the APK where the rules file can
+     * be found (e.g., "assets/easyprivacy.proto").
      */
-    public void setRulesFile(File rulesFile) {
+    public void setRulesFile(String apkPath) {
         try {
-            mImpl.setRulesFile(rulesFile.toString());
+            mImpl.setRulesFile(apkPath);
         } catch (RemoteException e) {
             throw new APICallException(e);
         }

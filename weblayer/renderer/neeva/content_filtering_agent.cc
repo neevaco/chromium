@@ -126,6 +126,8 @@ void ContentFilteringAgent::OnApplyNewRules(
 
     rules_ = std::move(new_rules);
 
+    // XXX
+#if 0
     // Disabled if no filter data has been provided.
     if (rules_->url_pattern_data) {
       rules_data_mapping_ =
@@ -138,6 +140,7 @@ void ContentFilteringAgent::OnApplyNewRules(
       auto count = matcher_->GetRulesCount();
       Log(base::StringPrintf("%lu rules", count));
     }
+#endif
   }
 
   // Kick-off another hanging refresh, waiting for the browser-side to let us know
