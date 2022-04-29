@@ -8,27 +8,57 @@
 #include "third_party/blink/public/platform/web_security_origin.h"
 #include "third_party/blink/public/platform/web_url_request.h"
 
+using namespace url_pattern_index;
+
 namespace weblayer {
 namespace neeva {
 
 namespace {
 
-// TODO: Switch to using RequestContext instead so we can discern XMLHttpRequest.
-url_pattern_index::proto::ElementType GetElementTypeForRequest(
-    const network::ResourceRequest* request) {
-  auto result = url_pattern_index::proto::ELEMENT_TYPE_UNSPECIFIED;
-  switch (request->destination) {
-    case network::mojom::RequestDestination::kImage:
-      result = url_pattern_index::proto::ELEMENT_TYPE_IMAGE;
+proto::ElementType GetElementTypeForRequest(
+    blink::mojom::RequestContextType type) {
+  proto::ElementType result;
+  switch (type) {
+    case blink::mojom::RequestContextType::SCRIPT:
+      result = proto::ELEMENT_TYPE_SCRIPT;
       break;
-    case network::mojom::RequestDestination::kScript:
-      result = url_pattern_index::proto::ELEMENT_TYPE_SCRIPT;
+    case blink::mojom::RequestContextType::IMAGE:
+      result = proto::ELEMENT_TYPE_IMAGE;
       break;
-    case network::mojom::RequestDestination::kStyle:
-      result = url_pattern_index::proto::ELEMENT_TYPE_STYLESHEET;
+    case blink::mojom::RequestContextType::STYLE:
+      result = proto::ELEMENT_TYPE_STYLESHEET;
       break;
-    // TODO: Add more cases here.
+    case blink::mojom::RequestContextType::EMBED:
+    case blink::mojom::RequestContextType::OBJECT:
+      result = proto::ELEMENT_TYPE_OBJECT;
+      break;
+    case blink::mojom::RequestContextType::FETCH:
+    case blink::mojom::RequestContextType::XML_HTTP_REQUEST:
+      result = proto::ELEMENT_TYPE_XMLHTTPREQUEST;
+      break;
+    case blink::mojom::RequestContextType::FRAME:
+    case blink::mojom::RequestContextType::IFRAME:
+      result = proto::ELEMENT_TYPE_SUBDOCUMENT;
+      break;
+    case blink::mojom::RequestContextType::BEACON:
+    case blink::mojom::RequestContextType::PING:
+      result = proto::ELEMENT_TYPE_PING;
+      break;
+    case blink::mojom::RequestContextType::AUDIO:
+    case blink::mojom::RequestContextType::VIDEO:
+      result = proto::ELEMENT_TYPE_MEDIA;
+      break;
+    case blink::mojom::RequestContextType::FONT:
+      result = proto::ELEMENT_TYPE_FONT;
+      break;
+    // Not sure how to support:
+    //   ELEMENT_TYPE_OBJECT_SUBREQUEST
+    //   ELEMENT_TYPE_POPUP
+    //   ELEMENT_TYPE_WEBSOCKET
+    //   ELEMENT_TYPE_WEBTRANSPORT
+    //   ELEMENT_TYPE_WEBBUNDLE
     default:
+      result = proto::ELEMENT_TYPE_UNSPECIFIED;
       break;
   }
   return result;
@@ -41,7 +71,9 @@ ContentFilter::~ContentFilter() = default;
 ContentFilter::ContentFilter(
     scoped_refptr<ContentFilteringAgent> agent, int render_frame_id,
     const blink::WebURLRequest& request)
-    : agent_(std::move(agent)), render_frame_id_(render_frame_id) {
+    : agent_(std::move(agent)),
+      render_frame_id_(render_frame_id),
+      request_context_type_(request.GetRequestContext()) {
   auto top_frame_origin = request.TopFrameOrigin();
   if (top_frame_origin) {
     top_frame_origin_ = *top_frame_origin;
@@ -61,7 +93,7 @@ void ContentFilter::WillStartRequest(
       base::StringPrintf("WillStartRequest: [%s] dest=%d",
           request->url.spec().c_str(), request->destination));
 
-  auto element_type = GetElementTypeForRequest(request);
+  auto element_type = GetElementTypeForRequest(request_context_type_);
 
   switch (agent_->GetPolicyForRequest(request->url, top_frame_origin_, element_type)) {
     case ContentFilteringPolicy::kAllow:

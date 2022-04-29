@@ -54,7 +54,7 @@ public class ContentFilterManager {
     /**
      * Sets the given rules file as the active rules file.
      */
-    void setRulesFile(File rulesFile) {
+    public void setRulesFile(File rulesFile) {
         try {
             mImpl.setRulesFile(rulesFile.toString());
         } catch (RemoteException e) {
@@ -65,7 +65,7 @@ public class ContentFilterManager {
     /**
      * Sets the mode for applying the rules.
      */
-    void setMode(@ContentFilterMode int mode) {
+    public void setMode(@ContentFilterMode int mode) {
         try {
             mImpl.setMode(mode);
         } catch (RemoteException e) {
@@ -76,7 +76,7 @@ public class ContentFilterManager {
     /**
      * Adds a host exclusion.
      */
-    void addHostExclusion(String hostExclusion) {
+    public void addHostExclusion(String hostExclusion) {
         try {
             mImpl.addHostExclusion(hostExclusion);
         } catch (RemoteException e) {
@@ -87,7 +87,7 @@ public class ContentFilterManager {
     /**
      * Removes a host exclusion.
      */
-    void removeHostExclusion(String hostExclusion) {
+    public void removeHostExclusion(String hostExclusion) {
         try {
             mImpl.removeHostExclusion(hostExclusion);
         } catch (RemoteException e) {
@@ -98,7 +98,7 @@ public class ContentFilterManager {
     /**
      * Clears all host exclusions.
      */
-    void clearAllHostExclusions() {
+    public void clearAllHostExclusions() {
         try {
             mImpl.clearAllHostExclusions();
         } catch (RemoteException e) {
@@ -110,7 +110,7 @@ public class ContentFilterManager {
      * Starts filtering.
      * Use ContentFilterCallback to observe when filtering happens in a Tab.
      */
-    void startFiltering() {
+    public void startFiltering() {
         try {
             mImpl.startFiltering();
         } catch (RemoteException e) {
@@ -121,7 +121,7 @@ public class ContentFilterManager {
     /**
      * Stops filtering.
      */
-    void stopFiltering() {
+    public void stopFiltering() {
         try {
             mImpl.stopFiltering();
         } catch (RemoteException e) {

@@ -4,6 +4,7 @@
 #define WEBLAYER_RENDERER_NEEVA_CONTENT_FILTER_H__
 
 #include "third_party/blink/public/common/loader/url_loader_throttle.h"
+#include "third_party/blink/public/mojom/fetch/fetch_api_request.mojom.h"
 #include "url/origin.h"
 #include "weblayer/renderer/neeva/content_filtering_agent.h"
 
@@ -28,6 +29,7 @@ class ContentFilter : public blink::URLLoaderThrottle {
   scoped_refptr<ContentFilteringAgent> agent_;
   int render_frame_id_;
   url::Origin top_frame_origin_;
+  blink::mojom::RequestContextType request_context_type_;
 };
 
 }  // namespace neeva
