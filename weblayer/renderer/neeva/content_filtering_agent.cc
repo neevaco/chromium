@@ -2,6 +2,7 @@
 
 #include "weblayer/renderer/neeva/content_filtering_agent.h"
 
+#include "base/files/memory_mapped_file.h"
 #include "base/strings/stringprintf.h"
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "components/url_pattern_index/url_pattern_index.h"
@@ -19,6 +20,28 @@ bool IsThirdParty(const GURL& url, const url::Origin& first_party_origin) {
     !net::registry_controlled_domains::SameDomainOrHost(
       url, first_party_origin,
       net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
+}
+
+std::unique_ptr<base::MemoryMappedFile> MapRegion(
+    mojo::ScopedHandle data_handle,
+    uint64_t offset,
+    uint64_t size) {
+
+  base::ScopedPlatformFile data_fd;
+  if (mojo::UnwrapPlatformFile(std::move(data_handle), &data_fd)
+          != MOJO_RESULT_OK) {
+    return nullptr;
+  }
+
+  base::MemoryMappedFile::Region region;
+  region.offset = static_cast<int64_t>(offset);
+  region.size = static_cast<size_t>(size);
+
+  std::unique_ptr<base::MemoryMappedFile> memory_mapped_file;
+  if (!memory_mapped_file->Initialize(base::File(std::move(data_fd)), region))
+    return nullptr;
+
+  return memory_mapped_file;
 }
 
 }  // namespace
@@ -122,25 +145,18 @@ void ContentFilteringAgent::OnApplyNewRules(
     base::AutoLock locked(rules_lock_);
 
     matcher_.reset();
-    rules_data_mapping_.reset();
 
     rules_ = std::move(new_rules);
-
-    // XXX
-#if 0
-    // Disabled if no filter data has been provided.
-    if (rules_->url_pattern_data) {
-      rules_data_mapping_ =
-          rules_->url_pattern_data->Map(rules_->url_pattern_data->GetSize());
-
+    rules_data_ = MapRegion(std::move(rules_->rules_data_fd),
+                            rules_->rules_data_offset,
+                            rules_->rules_data_size);
+    if (rules_data_) {
       matcher_ = std::make_unique<url_pattern_index::UrlPatternIndexMatcher>(
-          url_pattern_index::flat::GetUrlPatternIndex(
-              rules_data_mapping_.get()));
+          url_pattern_index::flat::GetUrlPatternIndex(rules_data_->data()));
 
       auto count = matcher_->GetRulesCount();
       Log(base::StringPrintf("%lu rules", count));
     }
-#endif
   }
 
   // Kick-off another hanging refresh, waiting for the browser-side to let us know

@@ -9,6 +9,10 @@
 #include "mojo/public/cpp/bindings/remote.h"
 #include "weblayer/common/neeva/content_filtering_service.mojom.h"
 
+namespace base {
+class MemoryMappedFile;
+}
+
 namespace blink {
 class ThreadSafeBrowserInterfaceBrokerProxy;
 class URLLoaderThrottle;
@@ -71,8 +75,8 @@ class ContentFilteringAgent
   // Acquire |rules_lock_| before accessing any of the following fields.
   mutable base::Lock rules_lock_;
   mojom::ContentFilterRulesPtr rules_;
+  std::unique_ptr<base::MemoryMappedFile> rules_data_;
   std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> matcher_;
-  mojo::ScopedSharedBufferMapping rules_data_mapping_;
 };
 
 struct ContentFilteringAgentDeleter {
