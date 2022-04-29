@@ -20,6 +20,7 @@ url_pattern_index::proto::ElementType GetElementTypeForRequest(
     case network::mojom::RequestDestination::kImage:
       result = url_pattern_index::proto::ELEMENT_TYPE_IMAGE;
       break;
+    // TODO: Add more cases here.
     default:
       break;
   }

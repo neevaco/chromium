@@ -14,6 +14,9 @@ namespace neeva {
 
 class ContentFilterRulesFileGenerator {
  public:
+  static bool GenerateNow(const base::FilePath& input_file,
+                          const base::FilePath& output_file);
+
   static void Generate(const base::FilePath& input_file,
                        const base::FilePath& output_file,
                        base::OnceCallback<void(bool)> callback);
