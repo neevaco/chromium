@@ -13,12 +13,19 @@ namespace neeva {
 
 namespace {
 
+// TODO: Switch to using RequestContext instead so we can discern XMLHttpRequest.
 url_pattern_index::proto::ElementType GetElementTypeForRequest(
     const network::ResourceRequest* request) {
   auto result = url_pattern_index::proto::ELEMENT_TYPE_UNSPECIFIED;
   switch (request->destination) {
     case network::mojom::RequestDestination::kImage:
       result = url_pattern_index::proto::ELEMENT_TYPE_IMAGE;
+      break;
+    case network::mojom::RequestDestination::kScript:
+      result = url_pattern_index::proto::ELEMENT_TYPE_SCRIPT;
+      break;
+    case network::mojom::RequestDestination::kStyle:
+      result = url_pattern_index::proto::ELEMENT_TYPE_STYLESHEET;
       break;
     // TODO: Add more cases here.
     default:

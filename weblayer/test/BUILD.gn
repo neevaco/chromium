@@ -320,17 +320,7 @@ test("weblayer_unittests") {
   }
 }
 
-test("weblayer_neeva_unittests") {
-  testonly = true
-  deps = [
-    "//base/test:test_support",
-  ]
-  sources = [
-    "//base/test/run_all_unittests.cc",
-    "../browser/neeva/content_filter_rules_file_generator_unittest.cc",
-  ]
-}
-
+# TODO: Move to components
 executable("make_filter_rules") {
   deps = [
     "//base:base",
