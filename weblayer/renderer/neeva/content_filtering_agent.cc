@@ -34,13 +34,13 @@ std::unique_ptr<base::MemoryMappedFile> MapRegion(
 
   int64_t length = file.GetLength();
   agent->Log(base::StringPrintf("GetLength() returned %lu", length));
+#endif
 
   base::MemoryMappedFile::Region region;
   region.offset = static_cast<int64_t>(offset);
   region.size = static_cast<size_t>(size);
 
-  agent->Log(base::StringPrintf("!! Calling Initialize w/ offset=%lu size=%lu", offset, size));
-#endif
+  //agent->Log(base::StringPrintf("!! Calling Initialize w/ offset=%lu size=%lu", offset, size));
 
   auto memory_mapped_file = std::make_unique<base::MemoryMappedFile>();
   if (!memory_mapped_file->Initialize(base::File(data_handle.TakeFD()), region))
