@@ -98,7 +98,7 @@ mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
   std::copy(host_exclusions_.begin(), host_exclusions_.end(), hosts.begin());
   rules->top_level_host_exclusions = std::move(hosts);
 
-  rules->rules_data_fd = mojo::WrapPlatformFile(std::move(fd));
+  rules->rules_data_fd = mojo::PlatformHandle(std::move(fd));
   rules->rules_data_offset = region.offset;
   rules->rules_data_size = region.size;
 

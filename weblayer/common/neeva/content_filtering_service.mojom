@@ -12,7 +12,7 @@ struct ContentFilterRules {
   array<string> top_level_host_exclusions;
 
   // Where the rules can be found.
-  handle rules_data_fd;
+  handle<platform> rules_data_fd;
   uint64 rules_data_offset;
   uint64 rules_data_size;
 };

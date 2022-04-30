@@ -23,27 +23,28 @@ bool IsThirdParty(const GURL& url, const url::Origin& first_party_origin) {
 }
 
 std::unique_ptr<base::MemoryMappedFile> MapRegion(
-    mojo::ScopedHandle data_handle,
+    mojo::PlatformHandle data_handle,
     uint64_t offset,
     uint64_t size,
     ContentFilteringAgent* agent) {
-  base::ScopedPlatformFile data_fd;
-  if (mojo::UnwrapPlatformFile(std::move(data_handle), &data_fd)
-          != MOJO_RESULT_OK) {
-    return nullptr;
-  }
+#if 0
+  base::File file(data_handle.TakeFD());
 
-  agent->Log("Did UnwrapPlatformFile");
+  agent->Log("Did base::File() XYZ");
+
+  int64_t length = file.GetLength();
+  agent->Log(base::StringPrintf("GetLength() returned %lu", length));
 
   base::MemoryMappedFile::Region region;
   region.offset = static_cast<int64_t>(offset);
   region.size = static_cast<size_t>(size);
 
-  std::unique_ptr<base::MemoryMappedFile> memory_mapped_file;
-  if (!memory_mapped_file->Initialize(base::File(std::move(data_fd)), region))
-    return nullptr;
+  agent->Log(base::StringPrintf("!! Calling Initialize w/ offset=%lu size=%lu", offset, size));
+#endif
 
-  agent->Log("Did Initialize");
+  auto memory_mapped_file = std::make_unique<base::MemoryMappedFile>();
+  if (!memory_mapped_file->Initialize(base::File(data_handle.TakeFD()), region))
+    return nullptr;
 
   return memory_mapped_file;
 }
@@ -158,6 +159,7 @@ void ContentFilteringAgent::OnApplyNewRules(
                             rules_->rules_data_size,
                             this);
     if (rules_data_) {
+#if 0
       Log("Mapped the region");
       sleep(1);
 
@@ -166,14 +168,13 @@ void ContentFilteringAgent::OnApplyNewRules(
       for (; rp != re; ++rp) {}
       Log("Touched all of the data!");
       sleep(1);
+#endif
 
-      /*
       matcher_ = std::make_unique<url_pattern_index::UrlPatternIndexMatcher>(
           url_pattern_index::flat::GetUrlPatternIndex(rules_data_->data()));
 
       auto count = matcher_->GetRulesCount();
       Log(base::StringPrintf("%lu rules", count));
-      */
     } else {
       Log("Mapping the region failed!");
     }
