@@ -78,9 +78,11 @@ ContentFilter::ContentFilter(
     top_frame_origin_ = *top_frame_origin;
   }
   // Debug
+  /*
   agent_->Log(
       base::StringPrintf("Created ContentFilter: render_frame_id=%d [top_origin=%s]",
           render_frame_id, top_frame_origin_.GetURL().spec().c_str()));
+  */
 }
 
 void ContentFilter::WillStartRequest(
@@ -88,9 +90,11 @@ void ContentFilter::WillStartRequest(
   *defer = false;
 
   // Debug
+  /*
   agent_->Log(
       base::StringPrintf("WillStartRequest: [%s] dest=%d",
           request->url.spec().c_str(), request->destination));
+  */
 
   auto element_type = GetElementTypeForRequest(request_context_type_);
 

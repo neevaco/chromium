@@ -142,9 +142,6 @@ void ContentFilteringAgent::OnApplyNewRules(
     if (rules_data_) {
       matcher_ = std::make_unique<url_pattern_index::UrlPatternIndexMatcher>(
           url_pattern_index::flat::GetUrlPatternIndex(rules_data_->data()));
-
-      auto count = matcher_->GetRulesCount();
-      Log(base::StringPrintf("%lu rules", count));
     } else {
       Log("Mapping the region failed!");
     }
