@@ -1,23 +1,25 @@
 // Copyright 2022 Neeva. All rights reserved.
 
-#include <stdio.h>
+#include <iostream>
+
 #include "base/files/file_path.h"
-#include "weblayer/browser/neeva/content_filter_rules_file_generator.h"
+#include "components/neeva/tools/content_filter_rules_file_generator.h"
 
 int main(int argc, char** argv) {
   if (argc < 3) {
-    printf("Usage: make_filter_rules INPUT_FILE OUTPUT_FILE\n");
+    std::cerr << "Usage: make_filter_rules INPUT_FILE OUTPUT_FILE" << std::endl;
     return -1;
   }
-  printf("Generating %s from %s...\n", argv[2], argv[1]);
+  std::cout << "Generating " << argv[2] << " from " << argv[1] << "..." <<
+      std::endl;
 
   base::FilePath input_file(argv[1]);
   base::FilePath output_file(argv[2]);
-  if (!weblayer::neeva::ContentFilterRulesFileGenerator::GenerateNow(
+  if (!neeva::ContentFilterRulesFileGenerator::Generate(
           input_file, output_file)) {
-    printf("FAILED\n");
+    std::cerr << "FAILED" << std::endl;
     return -1;
   }
-  printf("DONE\n");
+  std::cout << "DONE" << std::endl;
   return 0;
 }

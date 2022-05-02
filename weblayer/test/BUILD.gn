@@ -319,16 +319,3 @@ test("weblayer_unittests") {
     ]
   }
 }
-
-# TODO: Move to components
-executable("make_filter_rules") {
-  deps = [
-    "//base:base",
-    "//components/url_pattern_index:url_pattern_index",
-  ]
-  sources = [
-    "neeva/make_filter_rules.cc",
-    "../browser/neeva/content_filter_rules_file_generator.cc",
-    "../browser/neeva/content_filter_rules_file_generator.h",
-  ]
-}
