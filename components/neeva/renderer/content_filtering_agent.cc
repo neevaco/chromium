@@ -23,22 +23,10 @@ bool IsThirdParty(const GURL& url, const url::Origin& first_party_origin) {
 std::unique_ptr<base::MemoryMappedFile> MapRegion(
     mojo::PlatformHandle data_handle,
     uint64_t offset,
-    uint64_t size,
-    ContentFilteringAgent* agent) {
-#if 0
-  base::File file(data_handle.TakeFD());
-
-  agent->Log("Did base::File() XYZ");
-
-  int64_t length = file.GetLength();
-  agent->Log(base::StringPrintf("GetLength() returned %lu", length));
-#endif
-
+    uint64_t size) {
   base::MemoryMappedFile::Region region;
   region.offset = static_cast<int64_t>(offset);
   region.size = static_cast<size_t>(size);
-
-  //agent->Log(base::StringPrintf("!! Calling Initialize w/ offset=%lu size=%lu", offset, size));
 
   auto memory_mapped_file = std::make_unique<base::MemoryMappedFile>();
   if (!memory_mapped_file->Initialize(base::File(data_handle.TakeFD()), region))
@@ -95,8 +83,6 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
 
   // TODO: Apply top_level_host_exclusions
 
-  const_cast<ContentFilteringAgent*>(this)->Log("Calling FindMatch");
-
   if (!matcher_->FindMatch(
           url, first_party_origin, element_type,
           url_pattern_index::proto::ACTIVATION_TYPE_UNSPECIFIED,
@@ -141,8 +127,6 @@ void ContentFilteringAgent::RefreshRules() {
 
 void ContentFilteringAgent::OnApplyNewRules(
     int64_t new_generation_num, mojom::ContentFilterRulesPtr new_rules) {
-  Log("OnApplyNewRules");
-
   current_generation_num_ = new_generation_num;
 
   // Update the matcher.
@@ -154,20 +138,8 @@ void ContentFilteringAgent::OnApplyNewRules(
     rules_ = std::move(new_rules);
     rules_data_ = MapRegion(std::move(rules_->rules_data_fd),
                             rules_->rules_data_offset,
-                            rules_->rules_data_size,
-                            this);
+                            rules_->rules_data_size);
     if (rules_data_) {
-#if 0
-      Log("Mapped the region");
-      sleep(1);
-
-      const uint8_t* rp = rules_data_->data() + rules_->rules_data_offset; 
-      const uint8_t* re = rp + rules_->rules_data_size;
-      for (; rp != re; ++rp) {}
-      Log("Touched all of the data!");
-      sleep(1);
-#endif
-
       matcher_ = std::make_unique<url_pattern_index::UrlPatternIndexMatcher>(
           url_pattern_index::flat::GetUrlPatternIndex(rules_data_->data()));
 

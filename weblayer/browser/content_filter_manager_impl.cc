@@ -6,7 +6,6 @@
 #include "base/files/file_path.h"
 #include "base/memory/ptr_util.h"
 #include "components/neeva/browser/content_filter_rules_config.h"
-#include "components/neeva/browser/content_filter_rules_file_generator.h"
 #include "content/public/browser/browser_context.h"
 
 #if BUILDFLAG(IS_ANDROID)

@@ -111,7 +111,6 @@ void ContentFilter::WillStartRequest(
   // Report content filtering.
   mojom::ContentFilterActionPtr action(mojom::ContentFilterAction::New());
   action->host = request->url.host();
-  action->top_frame_host = top_frame_origin_.host();
   agent_->OnContentFiltered(render_frame_id_, std::move(action));
 }
 

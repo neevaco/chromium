@@ -19,7 +19,6 @@ struct ContentFilterRules {
 
 struct ContentFilterAction {
   string host;
-  string top_frame_host;
 };
 
 interface ContentFilterRulesProvider {
