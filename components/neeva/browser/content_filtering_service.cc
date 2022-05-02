@@ -53,8 +53,6 @@ void ContentFilteringService::GetRulesProvider(
 
 void ContentFilteringService::OnContentFiltered(
     int32_t render_frame_id, mojom::ContentFilterActionPtr action) {
-  LOG(ERROR) << ">>> BLOCKED: " << action->host;
-
   auto* rfh =
       content::RenderFrameHost::FromID(render_process_id_, render_frame_id);
   if (!rfh) {

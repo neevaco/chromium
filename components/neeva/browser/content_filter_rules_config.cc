@@ -81,14 +81,10 @@ mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
   if (!is_filtering_enabled_)
     return nullptr;
 
-  LOG(ERROR) << ">>> Calling OpenApkAsset: " << rules_file_apk_path_;
-
   base::MemoryMappedFile::Region region;
   base::ScopedFD fd(base::android::OpenApkAsset(rules_file_apk_path_, &region));
   if (fd == -1)
     return nullptr;
-
-  LOG(ERROR) << ">>> success! region=[offset=" << region.offset << ", size=" << region.size << "]";
 
   auto rules = mojom::ContentFilterRules::New();
   rules->mode = mode_;
