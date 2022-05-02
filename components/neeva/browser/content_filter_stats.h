@@ -13,9 +13,7 @@ class ContentFilterStats : public content::DocumentUserData<ContentFilterStats> 
  public:
   ~ContentFilterStats() override;
 
-  void RecordFilteredHost(const std::string& host) {
-    hosts_to_counts_[host] += 1;
-  }
+  void RecordFilteredHost(const std::string& host);
 
   const std::map<std::string, int>& data() const {
       return hosts_to_counts_; }

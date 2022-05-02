@@ -10,6 +10,8 @@
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "third_party/blink/public/common/thread_safe_browser_interface_broker_proxy.h"
 
+using namespace url_pattern_index;
+
 namespace neeva {
 namespace {
 
@@ -73,7 +75,7 @@ void ContentFilteringAgent::OnContentFiltered(
 
 ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     const GURL& url, const url::Origin& first_party_origin,
-    url_pattern_index::proto::ElementType element_type) const {
+    proto::ElementType element_type) const {
   // NOTE: Called from any thread.
   base::AutoLock locked(rules_lock_);
 
@@ -81,15 +83,21 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
-  // TODO: Apply top_level_host_exclusions
+  // Apply top-level host exclusions.
+  // TODO: Use a set for more efficient lookup.
+  auto end = rules_->top_level_host_exclusions.end();
+  if (std::find(rules_->top_level_host_exclusions.begin(), end,
+                first_party_origin.host()) != end) {
+    return ContentFilteringPolicy::kAllow;
+  }
 
   if (!matcher_->FindMatch(
           url, first_party_origin, element_type,
-          url_pattern_index::proto::ACTIVATION_TYPE_UNSPECIFIED,
+          proto::ACTIVATION_TYPE_UNSPECIFIED,
           IsThirdParty(url, first_party_origin),
           false,
-          url_pattern_index::UrlPatternIndexMatcher::EmbedderConditionsMatcher(),
-          url_pattern_index::UrlPatternIndexMatcher::FindRuleStrategy::kAny)) {
+          UrlPatternIndexMatcher::EmbedderConditionsMatcher(),
+          UrlPatternIndexMatcher::FindRuleStrategy::kAny)) {
     return ContentFilteringPolicy::kAllow;
   }
 
@@ -140,8 +148,8 @@ void ContentFilteringAgent::OnApplyNewRules(
                             rules_->rules_data_offset,
                             rules_->rules_data_size);
     if (rules_data_) {
-      matcher_ = std::make_unique<url_pattern_index::UrlPatternIndexMatcher>(
-          url_pattern_index::flat::GetUrlPatternIndex(rules_data_->data()));
+      matcher_ = std::make_unique<UrlPatternIndexMatcher>(
+          flat::GetUrlPatternIndex(rules_data_->data()));
     } else {
       Log("Mapping the region failed!");
     }
