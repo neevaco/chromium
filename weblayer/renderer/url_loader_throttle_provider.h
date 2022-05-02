@@ -6,12 +6,12 @@
 #define WEBLAYER_RENDERER_URL_LOADER_THROTTLE_PROVIDER_H_
 
 #include "base/threading/thread_checker.h"
+#include "components/neeva/renderer/content_filtering_agent.h"
 #include "components/safe_browsing/content/common/safe_browsing.mojom.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "third_party/blink/public/common/thread_safe_browser_interface_broker_proxy.h"
 #include "third_party/blink/public/platform/url_loader_throttle_provider.h"
-#include "weblayer/renderer/neeva/content_filtering_agent.h"
 
 namespace weblayer {
 

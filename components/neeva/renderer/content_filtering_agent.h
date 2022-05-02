@@ -1,13 +1,13 @@
 // Copyright Neeva. All rights reserved.
 
-#ifndef WEBLAYER_RENDERER_NEEVA_CONTENT_FILTERING_AGENT_H__
-#define WEBLAYER_RENDERER_NEEVA_CONTENT_FILTERING_AGENT_H__
+#ifndef COMPONENTS_NEEVA_RENDERER_CONTENT_FILTERING_AGENT_H__
+#define COMPONENTS_NEEVA_RENDERER_CONTENT_FILTERING_AGENT_H__
 
 #include "base/memory/ref_counted.h"
 #include "base/synchronization/lock.h"
+#include "components/neeva/common/content_filtering_service.mojom.h"
 #include "components/url_pattern_index/proto/rules.pb.h"
 #include "mojo/public/cpp/bindings/remote.h"
-#include "weblayer/common/neeva/content_filtering_service.mojom.h"
 
 namespace base {
 class MemoryMappedFile;
@@ -29,7 +29,6 @@ class UrlPatternIndexMatcher;
 
 class GURL;
 
-namespace weblayer {
 namespace neeva {
 
 struct ContentFilteringAgentDeleter;
@@ -86,6 +85,5 @@ struct ContentFilteringAgentDeleter {
 };
 
 }  // namespace neeva
-}  // namespace weblayer
 
-#endif  // WEBLAYER_RENDERER_NEEVA_CONTENT_FILTERING_AGENT_H__
+#endif  // COMPONENTS_NEEVA_RENDERER_CONTENT_FILTERING_AGENT_H__

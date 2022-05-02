@@ -1,7 +1,7 @@
 // Copyright 2022 Neeva. All rights reserved.
 
-#ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
-#define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
+#ifndef COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_RULES_CONFIG_H_
+#define COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_RULES_CONFIG_H_
 
 #include <set>
 #include <string>
@@ -12,15 +12,14 @@
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list.h"
 #include "base/supports_user_data.h"
+#include "components/neeva/common/content_filtering_service.mojom.h"
 #include "mojo/public/cpp/bindings/receiver_set.h"
 #include "mojo/public/cpp/system/buffer.h"
-#include "weblayer/common/neeva/content_filtering_service.mojom.h"
 
 namespace content {
 class BrowserContext;
 }
 
-namespace weblayer {
 namespace neeva {
 
 // Stored on each content::BrowserContext and holds the current rules
@@ -86,6 +85,5 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data,
 };
 
 }  // namespace neeva
-}  // namespace weblayer
 
-#endif  // WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_CONFIG_H_
+#endif  // COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_RULES_CONFIG_H_

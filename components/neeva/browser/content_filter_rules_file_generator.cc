@@ -1,6 +1,6 @@
 // Copyright 2022 Neeva. All rights reserved.
 
-#include "weblayer/browser/neeva/content_filter_rules_file_generator.h"
+#include "components/neeva/browser/content_filter_rules_file_generator.h"
 
 #include <iostream>
 
@@ -15,7 +15,6 @@
 
 using namespace url_pattern_index;
 
-namespace weblayer {
 namespace neeva {
 namespace {
 
@@ -348,4 +347,3 @@ void ContentFilterRulesFileGenerator::Generate(
 #endif
 
 }  // namespace neeva
-}  // namespace weblayer

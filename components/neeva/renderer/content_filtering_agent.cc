@@ -1,18 +1,16 @@
 // Copyright Neeva. All rights reserved.
 
-#include "weblayer/renderer/neeva/content_filtering_agent.h"
+#include "components/neeva/renderer/content_filtering_agent.h"
 
 #include "base/files/memory_mapped_file.h"
 #include "base/strings/stringprintf.h"
 #include "base/threading/sequenced_task_runner_handle.h"
+#include "components/neeva/renderer/content_filter.h"
 #include "components/url_pattern_index/url_pattern_index.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "third_party/blink/public/common/thread_safe_browser_interface_broker_proxy.h"
-#include "weblayer/renderer/neeva/content_filter.h"
 
-namespace weblayer {
 namespace neeva {
-
 namespace {
 
 bool IsThirdParty(const GURL& url, const url::Origin& first_party_origin) {
@@ -186,4 +184,3 @@ void ContentFilteringAgent::OnApplyNewRules(
 }
 
 }  // namespace neeva
-}  // namespace weblayer

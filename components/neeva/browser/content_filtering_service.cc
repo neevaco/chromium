@@ -1,19 +1,18 @@
 // Copyright Neeva. All rights reserved.
 
-#include "weblayer/browser/neeva/content_filtering_service.h"
+#include "components/neeva/browser/content_filtering_service.h"
 
 #include "base/logging.h"
+#include "components/neeva/browser/content_filter_client.h"
+#include "components/neeva/browser/content_filter_rules_config.h"
+#include "components/neeva/browser/content_filter_stats.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
 #include "content/public/browser/web_contents.h"
 #include "mojo/public/cpp/bindings/self_owned_receiver.h"
-#include "weblayer/browser/neeva/content_filter_client.h"
-#include "weblayer/browser/neeva/content_filter_rules_config.h"
-#include "weblayer/browser/neeva/content_filter_stats.h"
 
-namespace weblayer {
 namespace neeva {
 
 ContentFilteringService::ContentFilteringService(int render_process_id)
@@ -77,4 +76,3 @@ void ContentFilteringService::OnContentFiltered(
 }
 
 }  // namespace neeva
-}  // namespace weblayer

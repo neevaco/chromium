@@ -1,12 +1,11 @@
 // Copyright Neeva. All rights reserved.
 
-#ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTERING_SERVICE_H_
-#define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTERING_SERVICE_H_
+#ifndef COMPONENTS_NEEVA_BROWSER_CONTENT_FILTERING_SERVICE_H_
+#define COMPONENTS_NEEVA_BROWSER_CONTENT_FILTERING_SERVICE_H_
 
+#include "components/neeva/common/content_filtering_service.mojom.h"
 #include "services/service_manager/public/cpp/binder_registry.h"
-#include "weblayer/common/neeva/content_filtering_service.mojom.h"
 
-namespace weblayer {
 namespace neeva {
 
 class ContentFilteringService : public mojom::ContentFilteringService {
@@ -30,6 +29,5 @@ class ContentFilteringService : public mojom::ContentFilteringService {
 };
 
 }  // namespace neeva
-}  // namespace weblayer
 
-#endif  // WEBLAYER_BROWSER_NEEVA_CONTENT_FILTERING_SERVICE_H_
+#endif  // COMPONENTS_NEEVA_BROWSER_CONTENT_FILTERING_SERVICE_H_

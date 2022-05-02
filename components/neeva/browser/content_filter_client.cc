@@ -1,13 +1,12 @@
 // Copyright Neeva. All rights reserved.
 
-#include "weblayer/browser/neeva/content_filter_client.h"
+#include "components/neeva/browser/content_filter_client.h"
 
 #include "base/callback.h"
 #include "base/memory/ptr_util.h"
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "content/public/browser/web_contents.h"
 
-namespace weblayer {
 namespace neeva {
 
 // static
@@ -54,4 +53,3 @@ void ContentFilterClient::RunCallback() {
 ContentFilterClient::ContentFilterClient() = default;
 
 }  // namespace neeva
-}  // namespace weblayer

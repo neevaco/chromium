@@ -1,7 +1,7 @@
 // Copyright 2022 Neeva. All rights reserved.
 
-#ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_FILE_GENERATOR_H_
-#define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_FILE_GENERATOR_H_
+#ifndef COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_RULES_FILE_GENERATOR_H_
+#define COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_RULES_FILE_GENERATOR_H_
 
 #include "base/callback_forward.h"
 
@@ -9,7 +9,6 @@ namespace base {
 class FilePath;
 }
 
-namespace weblayer {
 namespace neeva {
 
 class ContentFilterRulesFileGenerator {
@@ -23,6 +22,5 @@ class ContentFilterRulesFileGenerator {
 };
 
 }  // namespace neeva
-}  // namespace weblayer
 
-#endif  // WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_RULES_FILE_GENERATOR_H_
+#endif  // COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_RULES_FILE_GENERATOR_H_

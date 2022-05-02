@@ -1,6 +1,6 @@
 // Copyright 2022 Neeva. All rights reserved.
 
-#include "weblayer/browser/neeva/content_filter_rules_config.h"
+#include "components/neeva/browser/content_filter_rules_config.h"
 
 #include <algorithm>
 
@@ -12,7 +12,6 @@
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "content/public/browser/browser_context.h"
 
-namespace weblayer {
 namespace neeva {
 
 // static
@@ -155,4 +154,3 @@ void ContentFilterRulesConfig::SendRulesToClient(
 }
 
 }  // namespace neeva
-}  // namespace weblayer

@@ -1,6 +1,6 @@
 // Copyright Neeva. All rights reserved.
 
-#include "weblayer/renderer/neeva/content_filter.h"
+#include "components/neeva/renderer/content_filter.h"
 
 #include "base/strings/stringprintf.h"
 #include "net/base/load_flags.h"
@@ -10,7 +10,6 @@
 
 using namespace url_pattern_index;
 
-namespace weblayer {
 namespace neeva {
 
 namespace {
@@ -117,4 +116,3 @@ void ContentFilter::WillStartRequest(
 }
 
 }  // namespace neeva
-}  // namespace weblayer

@@ -1,6 +1,6 @@
 // Copyright Neeva. All rights reserved.
 
-module weblayer.neeva.mojom;
+module neeva.mojom;
 
 enum ContentFilterMode {
   BLOCK_COOKIES,

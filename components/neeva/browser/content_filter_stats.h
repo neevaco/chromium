@@ -1,13 +1,12 @@
 // Copyright Neeva. All rights reserved.
 
-#ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_STATS_H_
-#define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_STATS_H_
+#ifndef COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_STATS_H_
+#define COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_STATS_H_
 
 #include <map>
 
 #include "content/public/browser/document_user_data.h"
 
-namespace weblayer {
 namespace neeva {
 
 class ContentFilterStats : public content::DocumentUserData<ContentFilterStats> {
@@ -31,6 +30,5 @@ class ContentFilterStats : public content::DocumentUserData<ContentFilterStats> 
 };
 
 }  // namespace neeva
-}  // namespace weblayer
 
-#endif  // WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_STATS_H_
+#endif  // COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_STATS_H_

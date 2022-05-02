@@ -1,7 +1,7 @@
 // Copyright Neeva. All rights reserved.
 
-#ifndef WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_CLIENT_H_
-#define WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_CLIENT_H_
+#ifndef COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_CLIENT_H_
+#define COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_CLIENT_H_
 
 #include "base/callback.h"
 #include "base/memory/weak_ptr.h"
@@ -11,7 +11,6 @@ namespace content {
 class WebContents;
 }
 
-namespace weblayer {
 namespace neeva {
 
 // Allows for associating a callback with a WebContents that will be notified
@@ -39,6 +38,5 @@ class ContentFilterClient : public base::SupportsUserData::Data {
 };
 
 }  // namespace neeva
-}  // namespace weblayer
 
-#endif  // WEBLAYER_BROWSER_NEEVA_CONTENT_FILTER_CLIENT_H_
+#endif  // COMPONENTS_NEEVA_BROWSER_CONTENT_FILTER_CLIENT_H_
