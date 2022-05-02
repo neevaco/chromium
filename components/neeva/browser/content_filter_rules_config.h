@@ -63,9 +63,6 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data,
   void NotifyCallbacks();
   void SendRulesToClient(RefreshRulesCallback callback) const;
 
-  //base::FilePath rules_file_;
-  //mojo::ScopedSharedBufferHandle rules_file_buffer_;
-
   std::string rules_file_apk_path_;
   mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;
   std::set<std::string> host_exclusions_;
