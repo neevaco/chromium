@@ -14,6 +14,7 @@ class WebURLRequest;
 
 namespace neeva {
 
+// An instance of this class is created per resource request.
 class ContentFilter : public blink::URLLoaderThrottle {
  public:
   ~ContentFilter() override;

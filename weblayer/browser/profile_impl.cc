@@ -540,6 +540,7 @@ void ProfileImpl::SetDownloadDirectory(
 }
 
 jlong ProfileImpl::GetContentFilterManager(JNIEnv* env) {
+  // TODO: Support non-Android platforms.
   if (!content_filter_manager_) {
     content_filter_manager_ =
         std::make_unique<ContentFilterManagerImpl>(GetBrowserContext());

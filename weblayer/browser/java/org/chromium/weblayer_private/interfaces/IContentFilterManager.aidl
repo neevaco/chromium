@@ -2,8 +2,6 @@
 
 package org.chromium.weblayer_private.interfaces;
 
-import org.chromium.weblayer_private.interfaces.IObjectWrapper;
-
 /**
  * Controls per-profile content filtering rules.
  */

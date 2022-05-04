@@ -73,7 +73,6 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data,
   // to 0 to signify that rules_ are not generated yet.
   int64_t rules_generation_num_ = 0;
 
-  mojom::ContentFilterRulesPtr rules_;
   std::vector<base::OnceClosure> refresh_rules_callbacks_;
 
   mojo::ReceiverSet<mojom::ContentFilterRulesProvider> receiver_set_;

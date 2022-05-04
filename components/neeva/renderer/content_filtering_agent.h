@@ -41,7 +41,7 @@ enum class ContentFilteringPolicy {
 
 class ContentFilteringAgent
     : public base::RefCountedThreadSafe<ContentFilteringAgent,
-                                       ContentFilteringAgentDeleter> {
+                                        ContentFilteringAgentDeleter> {
  public:
   explicit ContentFilteringAgent(
       blink::ThreadSafeBrowserInterfaceBrokerProxy* broker);
