@@ -42,12 +42,6 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data,
   void StartFiltering();
   void StopFiltering();
 
-  int64_t rules_generation_num() const { return rules_generation_num_; }
-
-  // Returns current rules. Return nullptr if there are no rules / if filtering
-  // is disabled.
-  mojom::ContentFilterRulesPtr GetRules() const;
-
   void AddReceiver(
       mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver);
 
@@ -62,6 +56,10 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data,
   void ConfigChanged();
   void NotifyCallbacks();
   void SendRulesToClient(RefreshRulesCallback callback) const;
+
+  // Returns current rules. Return nullptr if there are no rules / if filtering
+  // is disabled.
+  mojom::ContentFilterRulesPtr GetRules() const;
 
   std::string rules_file_apk_path_;
   mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;

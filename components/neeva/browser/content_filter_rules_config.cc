@@ -77,29 +77,6 @@ void ContentFilterRulesConfig::StopFiltering() {
   ConfigChanged();
 }
 
-mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
-  if (!is_filtering_enabled_)
-    return nullptr;
-
-  base::MemoryMappedFile::Region region;
-  base::ScopedFD fd(base::android::OpenApkAsset(rules_file_apk_path_, &region));
-  if (fd == -1)
-    return nullptr;
-
-  auto rules = mojom::ContentFilterRules::New();
-  rules->mode = mode_;
-
-  std::vector<std::string> hosts(host_exclusions_.size());
-  std::copy(host_exclusions_.begin(), host_exclusions_.end(), hosts.begin());
-  rules->top_level_host_exclusions = std::move(hosts);
-
-  rules->rules_data_fd = mojo::PlatformHandle(std::move(fd));
-  rules->rules_data_offset = region.offset;
-  rules->rules_data_size = region.size;
-
-  return rules;
-}
-
 void ContentFilterRulesConfig::AddReceiver(
     mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver) {
   receiver_set_.Add(this, std::move(receiver));
@@ -147,6 +124,29 @@ void ContentFilterRulesConfig::NotifyCallbacks() {
 void ContentFilterRulesConfig::SendRulesToClient(
     RefreshRulesCallback callback) const {
   std::move(callback).Run(rules_generation_num_, GetRules());
+}
+
+mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
+  if (!is_filtering_enabled_)
+    return nullptr;
+
+  base::MemoryMappedFile::Region region;
+  base::ScopedFD fd(base::android::OpenApkAsset(rules_file_apk_path_, &region));
+  if (fd == -1)
+    return nullptr;
+
+  auto rules = mojom::ContentFilterRules::New();
+  rules->mode = mode_;
+
+  std::vector<std::string> hosts(host_exclusions_.size());
+  std::copy(host_exclusions_.begin(), host_exclusions_.end(), hosts.begin());
+  rules->top_level_host_exclusions = std::move(hosts);
+
+  rules->rules_data_fd = mojo::PlatformHandle(std::move(fd));
+  rules->rules_data_offset = region.offset;
+  rules->rules_data_size = region.size;
+
+  return rules;
 }
 
 }  // namespace neeva

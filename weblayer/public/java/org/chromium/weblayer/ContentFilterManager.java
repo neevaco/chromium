@@ -55,6 +55,7 @@ public class ContentFilterManager {
 
     /**
      * Adds a host exclusion.
+     * @param hostExclusion the hostname to exclude. Should be normalized (i.e., lowercase).
      */
     public void addHostExclusion(String hostExclusion) {
         try {
