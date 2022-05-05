@@ -1,0 +1,20 @@
+# Copyright 2022 Neeva. All rights reserved.
+
+source_set("browser") {
+  sources = [
+    "content_filter_client.cc",
+    "content_filter_client.h",
+    "content_filter_rules_config.cc",
+    "content_filter_rules_config.h",
+    "content_filter_stats.cc",
+    "content_filter_stats.h",
+    "content_filtering_service.cc",
+    "content_filtering_service.h",
+  ]
+  deps = [
+    "//base",
+    "//components/neeva/common:mojo_bindings",
+    "//components/url_pattern_index",
+    "//content/public/browser",
+  ]
+}

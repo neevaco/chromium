@@ -1,0 +1,19 @@
+# Copyright 2019 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+source_set("renderer") {
+  sources = [
+    "content_filter.cc",
+    "content_filter.h",
+    "content_filtering_agent.cc",
+    "content_filtering_agent.h",
+  ]
+  deps = [
+    "//base",
+    "//components/neeva/common:mojo_bindings",
+    "//components/url_pattern_index",
+    "//third_party/blink/public:blink_headers",
+    "//url",
+  ]
+}

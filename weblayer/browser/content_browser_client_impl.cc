@@ -28,6 +28,7 @@
 #include "components/error_page/common/localized_error.h"
 #include "components/error_page/content/browser/net_error_auto_reloader.h"
 #include "components/metrics/metrics_service.h"
+#include "components/neeva/browser/content_filtering_service.h"
 #include "components/network_time/network_time_tracker.h"
 #include "components/no_state_prefetch/browser/no_state_prefetch_manager.h"
 #include "components/no_state_prefetch/common/prerender_url_loader_throttle.h"
@@ -944,6 +945,9 @@ void ContentBrowserClientImpl::ExposeInterfacesToRenderer(
       IsSafebrowsingSupported()) {
     GetSafeBrowsingService()->AddInterface(registry, render_process_host);
   }
+
+  neeva::ContentFilteringService::AddInterface(
+      registry, render_process_host->GetID());
 #endif  // BUILDFLAG(IS_ANDROID)
 }
 

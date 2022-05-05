@@ -85,6 +85,7 @@ public class Profile {
     private IProfile mImpl;
     private DownloadCallbackClientImpl mDownloadCallbackClient;
     private final CookieManager mCookieManager;
+    private final ContentFilterManager mContentFilterManager;
     private final PrerenderController mPrerenderController;
 
     // Constructor for test mocking.
@@ -93,6 +94,7 @@ public class Profile {
         mIsIncognito = false;
         mImpl = null;
         mCookieManager = null;
+        mContentFilterManager = null;
         mPrerenderController = null;
     }
 
@@ -101,6 +103,7 @@ public class Profile {
         mImpl = impl;
         mIsIncognito = isIncognito;
         mCookieManager = CookieManager.create(impl);
+        mContentFilterManager = ContentFilterManager.create(impl);
         mPrerenderController = PrerenderController.create(impl);
 
         if (isIncognito) {
@@ -298,6 +301,16 @@ public class Profile {
         ThreadCheck.ensureOnUiThread();
 
         return mCookieManager;
+    }
+
+    /**
+     * Gets the content filter manager for this profile.
+     */
+    @NonNull
+    public ContentFilterManager getContentFilterManager() {
+        ThreadCheck.ensureOnUiThread();
+
+        return mContentFilterManager;
     }
 
     /**

@@ -39,6 +39,7 @@
 #include "weblayer/browser/browser_impl.h"
 #include "weblayer/browser/browser_list.h"
 #include "weblayer/browser/browsing_data_remover_delegate.h"
+#include "weblayer/browser/content_filter_manager_impl.h"
 #include "weblayer/browser/cookie_manager_impl.h"
 #include "weblayer/browser/favicon/favicon_service_impl.h"
 #include "weblayer/browser/favicon/favicon_service_impl_factory.h"
@@ -537,6 +538,15 @@ void ProfileImpl::SetDownloadDirectory(
       base::android::ConvertJavaStringToUTF8(directory));
 
   SetDownloadDirectory(directory_path);
+}
+
+jlong ProfileImpl::GetContentFilterManager(JNIEnv* env) {
+  // TODO: Support non-Android platforms.
+  if (!content_filter_manager_) {
+    content_filter_manager_ =
+        std::make_unique<ContentFilterManagerImpl>(GetBrowserContext());
+  }
+  return reinterpret_cast<jlong>(content_filter_manager_.get());
 }
 
 jlong ProfileImpl::GetCookieManager(JNIEnv* env) {

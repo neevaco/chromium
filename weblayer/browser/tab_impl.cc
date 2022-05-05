@@ -33,6 +33,8 @@
 #include "components/js_injection/browser/web_message_host.h"
 #include "components/js_injection/browser/web_message_host_factory.h"
 #include "components/metrics/content/content_stability_metrics_provider.h"
+#include "components/neeva/browser/content_filter_client.h"
+#include "components/neeva/browser/content_filter_stats.h"
 #include "components/permissions/permission_manager.h"
 #include "components/permissions/permission_request_manager.h"
 #include "components/permissions/permission_result.h"
@@ -929,6 +931,50 @@ void TabImpl::Download(JNIEnv* env, jlong native_context_menu_params) {
 
   download::CreateContextMenuDownload(web_contents_.get(), *context_menu_params,
                                       std::string(), is_link);
+}
+
+base::android::ScopedJavaLocalRef<jobjectArray> TabImpl::GetContentFilterHosts(
+    JNIEnv* env) {
+  std::vector<std::string> hosts;
+
+  auto* stats = neeva::ContentFilterStats::GetForCurrentDocument(
+      web_contents_->GetMainFrame());
+  if (stats) {
+    for (const auto& it : stats->data()) {
+      hosts.push_back(it.first);
+    }
+  }
+
+  return base::android::ToJavaArrayOfStrings(env, hosts);
+}
+
+jint TabImpl::GetContentFilterCountForHost(
+    JNIEnv* env, const JavaParamRef<jstring>& host) {
+  int count = 0;
+
+  auto* stats = neeva::ContentFilterStats::GetForCurrentDocument(
+      web_contents_->GetMainFrame());
+  if (stats) {
+    auto it =
+        stats->data().find(base::android::ConvertJavaStringToUTF8(env, host));
+    if (it != stats->data().end()) {
+      count = it->second;
+    }
+  }
+
+  return count;
+}
+
+void TabImpl::SetContentFilterCallbackClient(
+    JNIEnv* env, const base::android::JavaParamRef<jobject>& client) {
+  base::android::ScopedJavaGlobalRef<jobject> scoped_client(client);
+  neeva::ContentFilterClient::GetOrCreate(web_contents_.get())->set_callback(
+      base::BindRepeating(
+          [](JNIEnv* env, base::android::ScopedJavaGlobalRef<jobject> client) {
+            Java_TabImpl_runContentFilterCallback(env, client);
+          },
+          base::Unretained(env), std::move(scoped_client)
+      ));
 }
 #endif  // BUILDFLAG(IS_ANDROID)
 

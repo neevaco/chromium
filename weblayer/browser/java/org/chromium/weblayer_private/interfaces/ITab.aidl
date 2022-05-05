@@ -6,6 +6,7 @@ package org.chromium.weblayer_private.interfaces;
 
 import java.util.List;
 
+import org.chromium.weblayer_private.interfaces.IContentFilterCallbackClient;
 import org.chromium.weblayer_private.interfaces.IContextMenuParams;
 import org.chromium.weblayer_private.interfaces.IDownloadCallbackClient;
 import org.chromium.weblayer_private.interfaces.IErrorPageCallbackClient;
@@ -85,4 +86,8 @@ interface ITab {
 
   // Added in 93
   void setExternalIntentInIncognitoCallbackClient(IExternalIntentInIncognitoCallbackClient client) = 33;
+
+  // Neeva additions:
+  Map getContentFilterStats() = 98;
+  void setContentFilterCallbackClient(IContentFilterCallbackClient client) = 99;
 }
