@@ -1,0 +1,13 @@
+# Copyright 2022 Neeva. All rights reserved.
+
+executable("make_filter_rules") {
+  deps = [
+    "//base:base",
+    "//components/url_pattern_index:url_pattern_index",
+  ]
+  sources = [
+    "make_filter_rules.cc",
+    "content_filter_rules_file_generator.cc",
+    "content_filter_rules_file_generator.h",
+  ]
+}

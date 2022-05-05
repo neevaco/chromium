@@ -6,6 +6,7 @@
 #define WEBLAYER_RENDERER_URL_LOADER_THROTTLE_PROVIDER_H_
 
 #include "base/threading/thread_checker.h"
+#include "components/neeva/renderer/content_filtering_agent.h"
 #include "components/safe_browsing/content/common/safe_browsing.mojom.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "mojo/public/cpp/bindings/remote.h"
@@ -43,6 +44,8 @@ class URLLoaderThrottleProvider : public blink::URLLoaderThrottleProvider {
 
   mojo::PendingRemote<safe_browsing::mojom::SafeBrowsing> safe_browsing_remote_;
   mojo::Remote<safe_browsing::mojom::SafeBrowsing> safe_browsing_;
+
+  scoped_refptr<neeva::ContentFilteringAgent> neeva_content_filtering_agent_;
 
   THREAD_CHECKER(thread_checker_);
 };
