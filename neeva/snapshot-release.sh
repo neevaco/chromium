@@ -14,6 +14,7 @@ echo "Taking snapshot of $src"
 
 mkdir -p $out
 cp $src/apks/WebLayerSupport.apk $out
+cp $src/apks/WebLayerShell.apk $out
 cp $src/args.gn $out
 
 (cd $src && zip -r $out/jars.zip $(find . -name \*.processed.jar))

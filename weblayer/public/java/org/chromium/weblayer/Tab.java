@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import org.chromium.weblayer_private.interfaces.APICallException;
 import org.chromium.weblayer_private.interfaces.IClientNavigation;
 import org.chromium.weblayer_private.interfaces.IClientPage;
+import org.chromium.weblayer_private.interfaces.IContentFilterCallbackClient;
 import org.chromium.weblayer_private.interfaces.IContextMenuParams;
 import org.chromium.weblayer_private.interfaces.IErrorPageCallbackClient;
 import org.chromium.weblayer_private.interfaces.IExternalIntentInIncognitoCallbackClient;
@@ -776,6 +777,24 @@ public class Tab {
         }
     }
 
+    public Map<String, Integer> getContentFilterStats() {
+        ThreadCheck.ensureOnUiThread();
+        try {
+            return (Map<String, Integer>) mImpl.getContentFilterStats();
+        } catch (RemoteException e) {
+            throw new APICallException(e);
+        }
+    }
+
+    public void setContentFilterCallback(ContentFilterCallback callback) {
+        ThreadCheck.ensureOnUiThread();
+        try {
+            mImpl.setContentFilterCallbackClient(new ContentFilterCallbackClientImpl(callback));
+        } catch (RemoteException e) {
+            throw new APICallException(e);
+        }
+    }
+
     /**
      * Experimental (for now) API to trigger the AddToHomescreen dialog for the page in the tab.
      * This adds a homescreen shortcut for it, or installs as a PWA or WebAPK.
@@ -1063,6 +1082,19 @@ public class Tab {
 
             mCallback.onExternalIntentInIncognito(
                     (userDecision) -> valueCallback.onReceiveValue(userDecision));
+        }
+    }
+
+    private static final class ContentFilterCallbackClientImpl extends IContentFilterCallbackClient.Stub {
+        private final ContentFilterCallback mCallback;
+
+        private ContentFilterCallbackClientImpl(ContentFilterCallback callback) {
+            mCallback = callback;
+        }
+
+        @Override
+        public void onContentFilterStatsUpdated() {
+            mCallback.onContentFilterStatsUpdated();
         }
     }
 }
