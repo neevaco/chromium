@@ -1,0 +1,13 @@
+# Copyright 2022 Neeva. All rights reserved.
+
+import("//mojo/public/tools/bindings/mojom.gni")
+
+mojom("mojo_bindings") {
+  sources = [
+    "content_filtering_service.mojom"
+  ]
+  public_deps = [
+    "//url/mojom:url_mojom_gurl",
+    "//url/mojom:url_mojom_origin",
+  ]
+}
