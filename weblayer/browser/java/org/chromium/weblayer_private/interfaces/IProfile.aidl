@@ -4,6 +4,7 @@
 
 package org.chromium.weblayer_private.interfaces;
 
+import org.chromium.weblayer_private.interfaces.IContentFilterManager;
 import org.chromium.weblayer_private.interfaces.ICookieManager;
 import org.chromium.weblayer_private.interfaces.IDownloadCallbackClient;
 import org.chromium.weblayer_private.interfaces.IUserIdentityCallbackClient;
@@ -51,4 +52,7 @@ interface IProfile {
 
   // Added in 91.
   void setTablessOpenUrlCallbackClient(IOpenUrlCallbackClient client) = 20;
+
+  // Neeva additions:
+  IContentFilterManager getContentFilterManager() = 99;
 }

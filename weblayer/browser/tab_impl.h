@@ -196,6 +196,9 @@ class TabImpl : public Tab,
   void SetDesktopUserAgentEnabled(JNIEnv* env, jboolean enable);
   jboolean IsDesktopUserAgentEnabled(JNIEnv* env);
   void Download(JNIEnv* env, jlong native_context_menu_params);
+  base::android::ScopedJavaLocalRef<jobjectArray> GetContentFilterHosts(JNIEnv* env);
+  jint GetContentFilterCountForHost(JNIEnv* env, const base::android::JavaParamRef<jstring>& host);
+  void SetContentFilterCallbackClient(JNIEnv* env, const base::android::JavaParamRef<jobject>& client);
 #endif
 
   ErrorPageDelegate* error_page_delegate() { return error_page_delegate_; }

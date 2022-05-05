@@ -25,6 +25,7 @@ import org.chromium.content_public.browser.UiThreadTaskTraits;
 import org.chromium.weblayer_private.interfaces.APICallException;
 import org.chromium.weblayer_private.interfaces.BrowsingDataType;
 import org.chromium.weblayer_private.interfaces.IBrowser;
+import org.chromium.weblayer_private.interfaces.IContentFilterManager;
 import org.chromium.weblayer_private.interfaces.ICookieManager;
 import org.chromium.weblayer_private.interfaces.IDownloadCallbackClient;
 import org.chromium.weblayer_private.interfaces.IGoogleAccountAccessTokenFetcherClient;
@@ -53,6 +54,7 @@ public final class ProfileImpl
     private final String mName;
     private final boolean mIsIncognito;
     private long mNativeProfile;
+    private ContentFilterManagerImpl mContentFilterManager;
     private CookieManagerImpl mCookieManager;
     private PrerenderControllerImpl mPrerenderController;
     private Runnable mOnDestroyCallback;
@@ -84,6 +86,8 @@ public final class ProfileImpl
         mIsIncognito = isIncognito;
         mName = name;
         mNativeProfile = ProfileImplJni.get().createProfile(name, ProfileImpl.this, mIsIncognito);
+        mContentFilterManager =
+                new ContentFilterManagerImpl(ProfileImplJni.get().getContentFilterManager(mNativeProfile));
         mCookieManager =
                 new CookieManagerImpl(ProfileImplJni.get().getCookieManager(mNativeProfile));
         mPrerenderController = new PrerenderControllerImpl(
@@ -305,6 +309,13 @@ public final class ProfileImpl
     }
 
     @Override
+    public IContentFilterManager getContentFilterManager() {
+        StrictModeWorkaround.apply();
+        checkNotDestroyed();
+        return mContentFilterManager;
+    }
+
+    @Override
     public ICookieManager getCookieManager() {
         StrictModeWorkaround.apply();
         checkNotDestroyed();
@@ -455,6 +466,7 @@ public final class ProfileImpl
         void clearBrowsingData(long nativeProfileImpl, @ImplBrowsingDataType int[] dataTypes,
                 long fromMillis, long toMillis, Runnable callback);
         void setDownloadDirectory(long nativeProfileImpl, String directory);
+        long getContentFilterManager(long nativeProfileImpl);
         long getCookieManager(long nativeProfileImpl);
         long getPrerenderController(long nativeProfileImpl);
         void ensureBrowserContextInitialized(long nativeProfileImpl);

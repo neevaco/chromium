@@ -31,6 +31,7 @@ struct OpenURLParams;
 
 namespace weblayer {
 class BrowserContextImpl;
+class ContentFilterManagerImpl;
 class CookieManagerImpl;
 class PrerenderControllerImpl;
 
@@ -138,6 +139,7 @@ class ProfileImpl : public Profile {
   void SetDownloadDirectory(
       JNIEnv* env,
       const base::android::JavaParamRef<jstring>& directory);
+  jlong GetContentFilterManager(JNIEnv* env);
   jlong GetCookieManager(JNIEnv* env);
   jlong GetPrerenderController(JNIEnv* env);
   void EnsureBrowserContextInitialized(JNIEnv* env);
@@ -204,6 +206,7 @@ class ProfileImpl : public Profile {
 
   base::CallbackListSubscription locale_change_subscription_;
 
+  std::unique_ptr<ContentFilterManagerImpl> content_filter_manager_;
   std::unique_ptr<CookieManagerImpl> cookie_manager_;
   std::unique_ptr<PrerenderControllerImpl> prerender_controller_;
 
