@@ -786,7 +786,8 @@ public class Tab {
     public void setContentFilterCallback(ContentFilterCallback callback) {
         ThreadCheck.ensureOnUiThread();
         try {
-            mImpl.setContentFilterCallbackClient(new ContentFilterCallbackClientImpl(callback));
+            mImpl.setContentFilterCallbackClient(
+                (callback != null) ? new ContentFilterCallbackClientImpl(callback) : null);
         } catch (RemoteException e) {
             throw new APICallException(e);
         }
