@@ -967,14 +967,19 @@ jint TabImpl::GetContentFilterCountForHost(
 
 void TabImpl::SetContentFilterCallbackClient(
     JNIEnv* env, const base::android::JavaParamRef<jobject>& client) {
-  base::android::ScopedJavaGlobalRef<jobject> scoped_client(client);
-  neeva::ContentFilterClient::GetOrCreate(web_contents_.get())->set_callback(
-      base::BindRepeating(
-          [](JNIEnv* env, base::android::ScopedJavaGlobalRef<jobject> client) {
-            Java_TabImpl_runContentFilterCallback(env, client);
-          },
-          base::Unretained(env), std::move(scoped_client)
-      ));
+  if (client) {
+    base::android::ScopedJavaGlobalRef<jobject> scoped_client(client);
+    neeva::ContentFilterClient::GetOrCreate(web_contents_.get())->set_callback(
+        base::BindRepeating(
+            [](JNIEnv* env, base::android::ScopedJavaGlobalRef<jobject> client) {
+              Java_TabImpl_runContentFilterCallback(env, client);
+            },
+            base::Unretained(env), std::move(scoped_client)
+        ));
+  } else {
+    neeva::ContentFilterClient::GetOrCreate(web_contents_.get())->set_callback(
+        base::RepeatingClosure());
+  }
 }
 #endif  // BUILDFLAG(IS_ANDROID)
 
