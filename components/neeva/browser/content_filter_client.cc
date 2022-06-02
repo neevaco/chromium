@@ -36,7 +36,7 @@ void ContentFilterClient::Notify() {
   // Run callback asynchronously and skip any notifications that come in while
   // we are waiting to run the callback. This helps avoid spammy notifications.
 
-  if (callback_pending_)
+  if (!callback_ || callback_pending_)
     return;
   callback_pending_ = true;
   base::SequencedTaskRunnerHandle::Get()->PostTask(
@@ -47,7 +47,9 @@ void ContentFilterClient::Notify() {
 
 void ContentFilterClient::RunCallback() {
   callback_pending_ = false;
-  callback_.Run();
+  if (callback_) {
+    callback_.Run();
+  }
 }
 
 ContentFilterClient::ContentFilterClient() = default;
