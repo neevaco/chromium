@@ -703,16 +703,33 @@ public final class WebLayerImpl extends IWebLayer.Stub {
             return ContextUtils.getApplicationContext();
         }
 
+        String packageName = remoteContext.getPackageName();
+        String packagePath = remoteContext.getApplicationInfo().sourceDir;
+
+        // If the weblayer implementation is included as part of the same package as the app,
+        // then assume it is located within a split named "weblayer_support".
+        if (packageName == appContext.getPackageName()) {
+            ApplicationInfo appInfo = remoteContext.getApplicationInfo();
+            for (int i = 0; i < appInfo.splitNames.length; ++i) {
+                if (appInfo.splitNames[i].equals("weblayer_support")) {
+                    packageName = "org.chromium.weblayer.support";
+                    packagePath = appInfo.splitSourceDirs[i];
+                    break;
+                }
+            }
+        }
+
         assert remoteContext != null;
         Context lightContext = createContextForMode(remoteContext, Configuration.UI_MODE_NIGHT_NO);
         Context darkContext = createContextForMode(remoteContext, Configuration.UI_MODE_NIGHT_YES);
         ClassLoaderContextWrapperFactory.setLightDarkResourceOverrideContext(
                 lightContext, darkContext);
 
-        int lightPackageId = forceCorrectPackageId(lightContext);
-        int darkPackageId = forceCorrectPackageId(darkContext);
+        int lightPackageId = forceCorrectPackageId(lightContext, packageName, packagePath);
+        int darkPackageId = forceCorrectPackageId(darkContext, packageName, packagePath);
         assert lightPackageId == darkPackageId;
 
+        // Update all resource IDs to use this package identifier as their prefix.
         // TODO: The call to onResourcesLoaded() can be slow, we may need to parallelize this with
         // other expensive startup tasks.
         org.chromium.base.R.onResourcesLoaded(lightPackageId);
@@ -725,8 +742,8 @@ public final class WebLayerImpl extends IWebLayer.Stub {
     }
 
     /** Forces the correct package ID or dies with a runtime exception. */
-    private static int forceCorrectPackageId(Context remoteContext) {
-        int packageId = getPackageId(remoteContext, remoteContext.getPackageName());
+    private static int forceCorrectPackageId(Context remoteContext, String packageName, String packagePath) {
+        int packageId = getPackageId(remoteContext, packageName);
         // This is using app_as_shared_lib, no change needed.
         if (packageId >= 0x7f) {
             return packageId;
@@ -738,16 +755,18 @@ public final class WebLayerImpl extends IWebLayer.Stub {
                     + ", Loaded packages: " + getLoadedPackageNames(remoteContext));
         }
 
-        forceAddAssetPaths(remoteContext, packageId);
+        forceAddAssetPaths(remoteContext, packageId, packagePath);
 
         return REQUIRED_PACKAGE_IDENTIFIER;
     }
 
-    /** Forces adding entries to the package identifiers array until we hit the required ID. */
-    private static void forceAddAssetPaths(Context remoteContext, int packageId) {
+    /** Forces adding entries to the package identifiers array until we hit the required ID.
+     *  This is a hack so that generated resource IDs (prefixed with 0x24) will be resolved
+     *  using this same path.
+     */
+    private static void forceAddAssetPaths(Context remoteContext, int packageId, String path) {
         try {
             Method addAssetPath = AssetManager.class.getMethod("addAssetPath", String.class);
-            String path = remoteContext.getApplicationInfo().sourceDir;
             // Add enough paths to make sure we reach the required ID.
             for (int i = packageId; i < REQUIRED_PACKAGE_IDENTIFIER; i++) {
                 // Change the path to ensure the asset path is re-added and grabs a new package ID.
