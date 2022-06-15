@@ -760,9 +760,10 @@ public final class WebLayerImpl extends IWebLayer.Stub {
         return REQUIRED_PACKAGE_IDENTIFIER;
     }
 
-    /** Forces adding entries to the package identifiers array until we hit the required ID.
-     *  This is a hack so that generated resource IDs (prefixed with 0x24) will be resolved
-     *  using this same path.
+    /**
+     * Forces adding entries to the package identifiers array until we hit the required ID.
+     * This is a hack so that generated resource IDs (prefixed with 0x24) will be resolved
+     * using this same path.
      */
     private static void forceAddAssetPaths(Context remoteContext, int packageId, String path) {
         try {
