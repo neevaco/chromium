@@ -15,6 +15,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.StrictMode;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.AndroidRuntimeException;
 import android.util.Log;
 import android.webkit.ValueCallback;
@@ -24,6 +25,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.fragment.app.Fragment;
+
+import dalvik.system.PathClassLoader;
 
 import org.chromium.weblayer_private.interfaces.APICallException;
 import org.chromium.weblayer_private.interfaces.BrowserFragmentArgs;
@@ -40,6 +43,7 @@ import org.chromium.weblayer_private.interfaces.ObjectWrapper;
 import org.chromium.weblayer_private.interfaces.StrictModeWorkaround;
 import org.chromium.weblayer_private.interfaces.WebLayerVersionConstants;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -69,7 +73,9 @@ public class WebLayer {
     @Nullable
     private static WebLayerLoader sLoader;
 
-    private static boolean sDisableWebViewCompatibilityMode;
+    // TODO: If we want to support using WebView in the same process as WebLayer, then we'll need
+    // to set this to false and make WebViewCompatibilityHelper work with the feature split build.
+    private static boolean sDisableWebViewCompatibilityMode = true;
 
     @NonNull
     private final IWebLayer mImpl;
@@ -756,7 +762,60 @@ public class WebLayer {
         sPackageInfo.setAccessible(true);
         sPackageInfo.set(null, implPackageInfo);
 
+        // If the WebLayer implementation is part of the application package, then assume
+        // that it lives as part of a split and update the class loader accordingly.
+        if (appContext.getPackageName().equals(implPackageName)) {
+            try {
+                remoteContext = remoteContext.createContextForSplit("weblayer_support");
+                updateClassLoader(remoteContext);
+            } catch (Exception e) {
+                Log.e(TAG, "createContextForSplit failed: " + e.getLocalizedMessage());
+                return null;
+            }
+        }
+
         return remoteContext;
+    }
+
+    private static String getAllSplitPaths(ApplicationInfo info) {
+        // The OS version of this method also includes resourceDirs, but this is not available in
+        // the SDK.
+
+        final List<String> output = new ArrayList<>(10);
+        // Next add split paths that are used by WebLayer.
+        if (info.splitSourceDirs != null) {
+            for (int i = 0; i < info.splitSourceDirs.length; i++) {
+                output.add(info.splitSourceDirs[i]);
+            }
+        }
+        // Last, add shared library paths.
+        if (info.sharedLibraryFiles != null) {
+            for (String input : info.sharedLibraryFiles) {
+                output.add(input);
+            }
+        }
+
+        return TextUtils.join(File.pathSeparator, output);
+    }
+
+    private static void updateClassLoader(Context context) {
+        // TODO: Find a less hacky way of building the path for the native libraries.
+        ClassLoader loader = new PathClassLoader(
+                getAllSplitPaths(context.getApplicationInfo()),
+                context.getApplicationInfo().splitSourceDirs[1] + "!/lib/arm64-v8a",
+                ClassLoader.getSystemClassLoader().getParent());
+        replaceClassLoader(context, loader);
+    }
+
+    /** Replaces the ClassLoader of the passed in Context. */
+    private static void replaceClassLoader(Context baseContext, ClassLoader classLoader) {
+        try {
+            Field classLoaderField = baseContext.getClass().getDeclaredField("mClassLoader");
+            classLoaderField.setAccessible(true);
+            classLoaderField.set(baseContext, classLoader);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Error setting ClassLoader.", e);
+        }
     }
 
     private static String sanitizeProfileName(String profileName) {
