@@ -235,6 +235,7 @@ android_apk("weblayer_support_apk") {
     "//android_webview:pak_file_assets",
     "//android_webview:weblayer_webview_assets",
     "//base:base_java",
+    "//components/neeva/data:neeva_assets",
     "//weblayer:locale_pak_assets",
     "//weblayer/browser/java",
     "//weblayer/browser/java:test_java",
