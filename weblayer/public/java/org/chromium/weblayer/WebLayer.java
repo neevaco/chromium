@@ -5,6 +5,7 @@
 package org.chromium.weblayer;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -26,7 +27,7 @@ import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.fragment.app.Fragment;
 
-import dalvik.system.PathClassLoader;
+import dalvik.system.DelegateLastClassLoader;
 
 import org.chromium.weblayer_private.interfaces.APICallException;
 import org.chromium.weblayer_private.interfaces.BrowserFragmentArgs;
@@ -766,8 +767,8 @@ public class WebLayer {
         // that it lives as part of a split and update the class loader accordingly.
         if (appContext.getPackageName().equals(implPackageName)) {
             try {
-                remoteContext = remoteContext.createContextForSplit("weblayer_support");
-                updateClassLoader(remoteContext);
+                remoteContext = new RemoteContextWrapper(
+                        remoteContext.createContextForSplit("weblayer_support"));
             } catch (Exception e) {
                 Log.e(TAG, "createContextForSplit failed: " + e.getLocalizedMessage());
                 return null;
@@ -777,44 +778,30 @@ public class WebLayer {
         return remoteContext;
     }
 
-    private static String getAllSplitPaths(ApplicationInfo info) {
-        // The OS version of this method also includes resourceDirs, but this is not available in
-        // the SDK.
+    private static class RemoteContextWrapper extends ContextWrapper {
+        private ClassLoader mRemoteClassLoader;
 
-        final List<String> output = new ArrayList<>(10);
-        // Next add split paths that are used by WebLayer.
-        if (info.splitSourceDirs != null) {
-            for (int i = 0; i < info.splitSourceDirs.length; i++) {
-                output.add(info.splitSourceDirs[i]);
-            }
-        }
-        // Last, add shared library paths.
-        if (info.sharedLibraryFiles != null) {
-            for (String input : info.sharedLibraryFiles) {
-                output.add(input);
-            }
+        RemoteContextWrapper(Context context) {
+            super(context);
+            mRemoteClassLoader = makeClassLoader(context);
         }
 
-        return TextUtils.join(File.pathSeparator, output);
-    }
+        @Override
+        public ClassLoader getClassLoader() {
+            return mRemoteClassLoader;
+        }
 
-    private static void updateClassLoader(Context context) {
-        // TODO: Find a less hacky way of building the path for the native libraries.
-        ClassLoader loader = new PathClassLoader(
-                getAllSplitPaths(context.getApplicationInfo()),
-                context.getApplicationInfo().splitSourceDirs[1] + "!/lib/arm64-v8a",
-                ClassLoader.getSystemClassLoader().getParent());
-        replaceClassLoader(context, loader);
-    }
+        private static ClassLoader makeClassLoader(Context context) {
+            ApplicationInfo info = context.getApplicationInfo();
 
-    /** Replaces the ClassLoader of the passed in Context. */
-    private static void replaceClassLoader(Context baseContext, ClassLoader classLoader) {
-        try {
-            Field classLoaderField = baseContext.getClass().getDeclaredField("mClassLoader");
-            classLoaderField.setAccessible(true);
-            classLoaderField.set(baseContext, classLoader);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Error setting ClassLoader.", e);
+            // TODO: Find a less hacky way of building these paths.
+            String dexPath = info.splitSourceDirs[0];
+            String libPath = info.splitSourceDirs[1] + "!/lib/arm64-v8a";
+
+            // Use DelegateLastClassLoader here instead of PathClassLoader so that the
+            // specified dexPath is given preference over the parent dexPath.
+            return new DelegateLastClassLoader(
+                    dexPath, libPath, ClassLoader.getSystemClassLoader().getParent());
         }
     }
 
