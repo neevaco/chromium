@@ -135,6 +135,10 @@ public final class WebLayerImpl extends IWebLayer.Stub {
     public static final String PREF_LAST_VERSION_CODE =
             "org.chromium.weblayer.last_version_code_used";
 
+    // When the weblayer implementation is included as part of the same package as the app,
+    // assume it is located within a split named with this value.
+    private static final String WEBLAYER_SAME_PACKAGE_SPLIT_NAME = "weblayer_support";
+
     // The required package ID for WebLayer when loaded as a shared library, hardcoded in the
     // resources. If this value changes make sure to change _SHARED_LIBRARY_HARDCODED_ID in
     // //build/android/gyp/util/protoresources.py and WebViewChromiumFactoryProvider.java.
@@ -711,7 +715,7 @@ public final class WebLayerImpl extends IWebLayer.Stub {
         if (packageName == appContext.getPackageName()) {
             ApplicationInfo appInfo = remoteContext.getApplicationInfo();
             for (int i = 0; i < appInfo.splitNames.length; ++i) {
-                if (appInfo.splitNames[i].equals("weblayer_support")) {
+                if (appInfo.splitNames[i].equals(WEBLAYER_SAME_PACKAGE_SPLIT_NAME)) {
                     packageName = "org.chromium.weblayer.support";
                     packagePath = appInfo.splitSourceDirs[i];
                     break;
@@ -762,8 +766,8 @@ public final class WebLayerImpl extends IWebLayer.Stub {
 
     /**
      * Forces adding entries to the package identifiers array until we hit the required ID.
-     * This is a hack so that generated resource IDs (prefixed with 0x24) will be resolved
-     * using this same path.
+     * This is a hack so that generated resource IDs (prefixed with REQUIRED_PACKAGE_IDENTIFIER)
+     * will be resolved using this same path.
      */
     private static void forceAddAssetPaths(Context remoteContext, int packageId, String path) {
         try {
