@@ -801,7 +801,7 @@ public class WebLayer {
             // Use DelegateLastClassLoader here instead of PathClassLoader so that the
             // specified dexPath is given preference over the parent dexPath.
             return new DelegateLastClassLoader(
-                    dexPath, libPath, ClassLoader.getSystemClassLoader().getParent());
+                    dexPath, libPath, context.getClassLoader().getParent());
         }
     }
 
