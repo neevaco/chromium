@@ -1,0 +1,13 @@
+# Copyright 2022 Neeva. All rights reserved.
+
+if (is_android) {
+  import("//build/config/android/config.gni")
+  import("//build/config/android/rules.gni")
+}
+
+if (is_android) {
+  android_assets("neeva_assets") {
+    sources = [ "easyprivacy.dat" ]
+    disable_compression = true
+  }
+}

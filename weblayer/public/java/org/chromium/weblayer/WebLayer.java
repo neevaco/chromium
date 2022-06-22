@@ -5,6 +5,7 @@
 package org.chromium.weblayer;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -15,6 +16,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.StrictMode;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.AndroidRuntimeException;
 import android.util.Log;
 import android.webkit.ValueCallback;
@@ -24,6 +26,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.fragment.app.Fragment;
+
+import dalvik.system.DelegateLastClassLoader;
 
 import org.chromium.weblayer_private.interfaces.APICallException;
 import org.chromium.weblayer_private.interfaces.BrowserFragmentArgs;
@@ -40,6 +44,7 @@ import org.chromium.weblayer_private.interfaces.ObjectWrapper;
 import org.chromium.weblayer_private.interfaces.StrictModeWorkaround;
 import org.chromium.weblayer_private.interfaces.WebLayerVersionConstants;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -69,7 +74,9 @@ public class WebLayer {
     @Nullable
     private static WebLayerLoader sLoader;
 
-    private static boolean sDisableWebViewCompatibilityMode;
+    // TODO: If we want to support using WebView in the same process as WebLayer, then we'll need
+    // to set this to false and make WebViewCompatibilityHelper work with the feature split build.
+    private static boolean sDisableWebViewCompatibilityMode = true;
 
     @NonNull
     private final IWebLayer mImpl;
@@ -756,7 +763,46 @@ public class WebLayer {
         sPackageInfo.setAccessible(true);
         sPackageInfo.set(null, implPackageInfo);
 
+        // If the WebLayer implementation is part of the application package, then assume
+        // that it lives as part of a split and update the class loader accordingly.
+        if (appContext.getPackageName().equals(implPackageName)) {
+            try {
+                remoteContext = new RemoteContextWrapper(
+                        remoteContext.createContextForSplit("weblayer_support"));
+            } catch (Exception e) {
+                Log.e(TAG, "createContextForSplit failed: " + e.getLocalizedMessage());
+                return null;
+            }
+        }
+
         return remoteContext;
+    }
+
+    private static class RemoteContextWrapper extends ContextWrapper {
+        private ClassLoader mRemoteClassLoader;
+
+        RemoteContextWrapper(Context context) {
+            super(context);
+            mRemoteClassLoader = makeClassLoader(context);
+        }
+
+        @Override
+        public ClassLoader getClassLoader() {
+            return mRemoteClassLoader;
+        }
+
+        private static ClassLoader makeClassLoader(Context context) {
+            ApplicationInfo info = context.getApplicationInfo();
+
+            // TODO: Find a less hacky way of building these paths.
+            String dexPath = info.splitSourceDirs[0];
+            String libPath = info.splitSourceDirs[1] + "!/lib/arm64-v8a";
+
+            // Use DelegateLastClassLoader here instead of PathClassLoader so that the
+            // specified dexPath is given preference over the parent dexPath.
+            return new DelegateLastClassLoader(
+                    dexPath, libPath, context.getClassLoader().getParent());
+        }
     }
 
     private static String sanitizeProfileName(String profileName) {
