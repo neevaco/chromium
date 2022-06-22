@@ -712,7 +712,7 @@ public final class WebLayerImpl extends IWebLayer.Stub {
 
         // If the weblayer implementation is included as part of the same package as the app,
         // then assume it is located within a split named "weblayer_support".
-        if (packageName == appContext.getPackageName()) {
+        if (packageName.equals(appContext.getPackageName())) {
             ApplicationInfo appInfo = remoteContext.getApplicationInfo();
             for (int i = 0; i < appInfo.splitNames.length; ++i) {
                 if (appInfo.splitNames[i].equals(WEBLAYER_SAME_PACKAGE_SPLIT_NAME)) {
