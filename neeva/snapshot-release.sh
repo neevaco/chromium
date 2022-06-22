@@ -17,8 +17,6 @@ cp $src/apks/WebLayerSupport.apk $out
 cp $src/apks/WebLayerShell.apk $out
 cp $src/args.gn $out
 
-(cd $src && zip -r $out/jars.zip $(find . -name \*.processed.jar))
-(cd $src && zip -r $out/resources.zip $(find . -name \*.resources.zip))
 (cd $src/../../weblayer/public/java && zip -r $out/client-res.zip res)
 (cd $src/../../weblayer/public/java && zip -r $out/client-java.zip $(find . -name \*.java))
 (cd $src/../../weblayer/browser/java && zip -r $out/client-java.zip $(find org/chromium/weblayer_private/interfaces -name \*.java))
