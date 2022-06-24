@@ -314,8 +314,9 @@ public final class TabImpl extends ITab.Stub {
         // addObserver() calls to observer when added.
         WebLayerAccessibilityUtil.get().addObserver(mAccessibilityObserver);
 
-        mMediaSessionHelper = new MediaSessionHelper(
-                mWebContents, MediaSessionManager.createMediaSessionHelperDelegate(this));
+        // Disable to workaround https://github.com/neevaco/neeva-android/issues/739
+        //mMediaSessionHelper = new MediaSessionHelper(
+        //        mWebContents, MediaSessionManager.createMediaSessionHelperDelegate(this));
 
         GestureListenerManager.fromWebContents(mWebContents)
                 .addListener(new GestureStateListener() {
