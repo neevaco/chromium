@@ -137,6 +137,8 @@ public final class WebLayerImpl extends IWebLayer.Stub {
     public static final String PREF_LAST_VERSION_CODE =
             "org.chromium.weblayer.last_version_code_used";
 
+    private static final String WEBLAYER_PACKAGE_NAME = "org.chromium.weblayer.support";
+
     // When the weblayer implementation is included as part of the same package as the app,
     // assume it is located within a split named with this value.
     private static final String WEBLAYER_SAME_PACKAGE_SPLIT_NAME = "weblayer_support";
@@ -686,8 +688,10 @@ public final class WebLayerImpl extends IWebLayer.Stub {
         } catch (Resources.NotFoundException e) {
         }
         id &= 0x00ffffff;
-        id |= (0x01000000
-                * getPackageId(context, WebViewFactory.getLoadedPackageInfo().packageName));
+        // TODO(darin): Hard coding this package name here breaks support for bundling
+        // as part of the system WebView. It would be better to determine this from the
+        // Context somehow.
+        id |= (0x01000000 * getPackageId(context, WEBLAYER_PACKAGE_NAME));
         return id;
     }
 
@@ -721,7 +725,7 @@ public final class WebLayerImpl extends IWebLayer.Stub {
             ApplicationInfo appInfo = remoteContext.getApplicationInfo();
             for (int i = 0; i < appInfo.splitNames.length; ++i) {
                 if (appInfo.splitNames[i].equals(WEBLAYER_SAME_PACKAGE_SPLIT_NAME)) {
-                    packageName = "org.chromium.weblayer.support";
+                    packageName = WEBLAYER_PACKAGE_NAME;
                     packagePath = appInfo.splitSourceDirs[i];
                     break;
                 }
