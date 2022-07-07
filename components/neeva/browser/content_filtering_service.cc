@@ -36,19 +36,15 @@ void ContentFilteringService::AddInterface(
       content::GetUIThreadTaskRunner({}));
 }
 
-void ContentFilteringService::Log(const std::string& message) {
-  LOG(ERROR) << ">>> " << message;
-}
-
-void ContentFilteringService::GetRulesProvider(
-    mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver) {
+void ContentFilteringService::AddRulesListener(
+    mojo::PendingRemote<mojom::ContentFilterRulesListener> remote) {
   auto* rph = content::RenderProcessHost::FromID(render_process_id_);
   if (!rph) {
     LOG(ERROR) << "No RenderProcessHost for ID";
     return;
   }
-  ContentFilterRulesConfig::GetOrCreate(rph->GetBrowserContext())->AddReceiver(
-      std::move(receiver));
+  ContentFilterRulesConfig::GetOrCreate(rph->GetBrowserContext())->AddListener(
+      std::move(remote));
 }
 
 void ContentFilteringService::OnContentFiltered(
