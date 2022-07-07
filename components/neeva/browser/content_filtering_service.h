@@ -17,10 +17,8 @@ class ContentFilteringService : public mojom::ContentFilteringService {
       service_manager::BinderRegistry* registry, int render_process_id);
 
   // mojom::ContentFilteringService methods:
-  void Log(const std::string& message) override;
-  void GetRulesProvider(
-      mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver)
-          override;
+  void AddRulesListener(
+      mojo::PendingRemote<mojom::ContentFilterRulesListener> remote) override;
   void OnContentFiltered(
       int32_t render_frame_id, mojom::ContentFilterActionPtr action) override;
 

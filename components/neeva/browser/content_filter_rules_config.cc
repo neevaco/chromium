@@ -77,27 +77,16 @@ void ContentFilterRulesConfig::StopFiltering() {
   ConfigChanged();
 }
 
-void ContentFilterRulesConfig::AddReceiver(
-    mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver) {
-  receiver_set_.Add(this, std::move(receiver));
-}
+void ContentFilterRulesConfig::AddListener(
+    mojo::PendingRemote<mojom::ContentFilterRulesListener> remote) {
+  auto listener_id = listeners_.Add(std::move(remote));
 
-void ContentFilterRulesConfig::RefreshRules(
-    int64_t current_generation_num, RefreshRulesCallback callback) {
-  if (rules_generation_num_ == current_generation_num) {
-    refresh_rules_callbacks_.push_back(
-        base::BindOnce(&ContentFilterRulesConfig::SendRulesToClient,
-                       weak_factory_.GetWeakPtr(), std::move(callback)));
-  } else {
-    SendRulesToClient(std::move(callback));
-  }
+  listeners_.Get(listener_id)->OnReceiveNewRules(GetRules());
 }
 
 ContentFilterRulesConfig::ContentFilterRulesConfig() = default;
 
 void ContentFilterRulesConfig::ConfigChanged() {
-  ++rules_generation_num_;
-
   if (is_notify_pending_) {
     return;
   }
@@ -108,22 +97,16 @@ void ContentFilterRulesConfig::ConfigChanged() {
   // into a single update.
   base::SequencedTaskRunnerHandle::Get()->PostTask(
       FROM_HERE,
-      base::BindOnce(&ContentFilterRulesConfig::NotifyCallbacks,
+      base::BindOnce(&ContentFilterRulesConfig::NotifyListeners,
                      weak_factory_.GetWeakPtr()));
 }
 
-void ContentFilterRulesConfig::NotifyCallbacks() {
+void ContentFilterRulesConfig::NotifyListeners() {
   is_notify_pending_ = false;
 
-  auto callbacks = std::move(refresh_rules_callbacks_);
-  for (auto& callback : callbacks) {
-    std::move(callback).Run();
+  for (auto& listener : listeners_) {
+    listener->OnReceiveNewRules(GetRules());
   }
-}
-
-void ContentFilterRulesConfig::SendRulesToClient(
-    RefreshRulesCallback callback) const {
-  std::move(callback).Run(rules_generation_num_, GetRules());
 }
 
 mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
