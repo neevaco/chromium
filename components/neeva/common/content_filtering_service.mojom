@@ -21,22 +21,12 @@ struct ContentFilterAction {
   string host;
 };
 
-interface ContentFilterRulesProvider {
-  // Fetching rules:
-  // - On startup, child processes call RefreshRules passing a `current_generation_num`
-  //   of `0`, indicating that it has no rules currently.
-  // - Upon receiving new rules, child processes will immediately call `RefreshRules`
-  //   again this time passing the value of `new_generation_num` that they received.
-  //   The service will respond only when it has new rules to provide.
-  RefreshRules(int64 current_generation_num) =>
-      (int64 new_generation_num, ContentFilterRules rules);
+interface ContentFilterRulesListener {
+  OnReceiveNewRules(ContentFilterRules? rules);
 };
 
 interface ContentFilteringService {
-  Log(string message);
-
-  // Used to make "Hanging GET" style requests for any rules updates.
-  GetRulesProvider(pending_receiver<ContentFilterRulesProvider> receiver);
+  AddRulesListener(pending_remote<ContentFilterRulesListener> listener);
 
   // When a child process filters content, it calls OnContentFiltered to let the
   // service know about it. `render_frame_id` identifies the frame in which content

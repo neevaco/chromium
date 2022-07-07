@@ -40,7 +40,8 @@ enum class ContentFilteringPolicy {
 };
 
 class ContentFilteringAgent
-    : public base::RefCountedThreadSafe<ContentFilteringAgent,
+    : public mojom::ContentFilterRulesListener,
+      public base::RefCountedThreadSafe<ContentFilteringAgent,
                                         ContentFilteringAgentDeleter> {
  public:
   explicit ContentFilteringAgent(
@@ -50,26 +51,25 @@ class ContentFilteringAgent
       int render_frame_id, const blink::WebURLRequest& request);
 
   // The following methods may be called on a background thread.
-  void Log(const std::string& message);
   void OnContentFiltered(
       int32_t render_frame_id, mojom::ContentFilterActionPtr action);
   ContentFilteringPolicy GetPolicyForRequest(
       const GURL& url, const url::Origin& first_party_origin,
       url_pattern_index::proto::ElementType element_type) const;
 
+  // mojom::ContentFilterRulesListener methods:
+  void OnReceiveNewRules(mojom::ContentFilterRulesPtr new_rules) override;
+
  private:
   friend struct ContentFilteringAgentDeleter;
 
-  ~ContentFilteringAgent();
+  ~ContentFilteringAgent() override;
   void DeleteOnCorrectThread() const;
-  void RefreshRules();
-  void OnApplyNewRules(
-      int64_t new_generation_num, mojom::ContentFilterRulesPtr new_rules);
 
   scoped_refptr<base::SequencedTaskRunner> task_runner_;
   mojo::Remote<mojom::ContentFilteringService> service_;
-  mojo::Remote<mojom::ContentFilterRulesProvider> rules_provider_;
-  int64_t current_generation_num_ = 0;
+
+  mojo::Receiver<mojom::ContentFilterRulesListener> receiver_{this};
 
   // Acquire |rules_lock_| before accessing any of the following fields.
   mutable base::Lock rules_lock_;

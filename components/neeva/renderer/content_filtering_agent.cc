@@ -43,22 +43,14 @@ ContentFilteringAgent::ContentFilteringAgent(
     blink::ThreadSafeBrowserInterfaceBrokerProxy* broker)
     : task_runner_(base::SequencedTaskRunnerHandle::Get()) {
   broker->GetInterface(service_.BindNewPipeAndPassReceiver());
-  RefreshRules();
+
+  service_->AddRulesListener(receiver_.BindNewPipeAndPassRemote());
 }
 
 std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
     int render_frame_id, const blink::WebURLRequest& request) {
   return std::make_unique<ContentFilter>(
       base::WrapRefCounted(this), render_frame_id, request);
-}
-
-void ContentFilteringAgent::Log(const std::string& message) {
-  if (task_runner_->RunsTasksInCurrentSequence()) {
-    service_->Log(message);
-  } else {
-    task_runner_->PostTask(
-        FROM_HERE, base::BindOnce(&ContentFilteringAgent::Log, this, message));
-  }
 }
 
 void ContentFilteringAgent::OnContentFiltered(
@@ -124,26 +116,16 @@ void ContentFilteringAgent::DeleteOnCorrectThread() const {
   }
 }
 
-void ContentFilteringAgent::RefreshRules() {
-  if (!rules_provider_) {
-    service_->GetRulesProvider(rules_provider_.BindNewPipeAndPassReceiver());
-  }
-  rules_provider_->RefreshRules(
-      current_generation_num_,
-      base::BindOnce(&ContentFilteringAgent::OnApplyNewRules, this));
-}
-
-void ContentFilteringAgent::OnApplyNewRules(
-    int64_t new_generation_num, mojom::ContentFilterRulesPtr new_rules) {
-  current_generation_num_ = new_generation_num;
-
+void ContentFilteringAgent::OnReceiveNewRules(
+    mojom::ContentFilterRulesPtr new_rules) {
   // Update the matcher.
-  {
-    base::AutoLock locked(rules_lock_);
+  base::AutoLock locked(rules_lock_);
 
-    matcher_.reset();
+  matcher_.reset();
+  rules_data_.reset();
 
-    rules_ = std::move(new_rules);
+  rules_ = std::move(new_rules);
+  if (rules_) {
     rules_data_ = MapRegion(std::move(rules_->rules_data_fd),
                             rules_->rules_data_offset,
                             rules_->rules_data_size);
@@ -151,13 +133,9 @@ void ContentFilteringAgent::OnApplyNewRules(
       matcher_ = std::make_unique<UrlPatternIndexMatcher>(
           flat::GetUrlPatternIndex(rules_data_->data()));
     } else {
-      Log("Mapping the region failed!");
+      LOG(ERROR) << "Mapping the region failed!";
     }
   }
-
-  // Kick-off another hanging refresh, waiting for the browser-side to let us know
-  // when it has new rules for us.
-  RefreshRules();
 }
 
 }  // namespace neeva
