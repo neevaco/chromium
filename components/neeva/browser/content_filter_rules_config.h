@@ -13,7 +13,7 @@
 #include "base/observer_list.h"
 #include "base/supports_user_data.h"
 #include "components/neeva/common/content_filtering_service.mojom.h"
-#include "mojo/public/cpp/bindings/receiver_set.h"
+#include "mojo/public/cpp/bindings/remote_set.h"
 #include "mojo/public/cpp/system/buffer.h"
 
 namespace content {
@@ -24,8 +24,7 @@ namespace neeva {
 
 // Stored on each content::BrowserContext and holds the current rules
 // configuration.
-class ContentFilterRulesConfig : public base::SupportsUserData::Data,
-                                 public mojom::ContentFilterRulesProvider {
+class ContentFilterRulesConfig : public base::SupportsUserData::Data {
  public:
   ~ContentFilterRulesConfig() override;
 
@@ -42,20 +41,15 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data,
   void StartFiltering();
   void StopFiltering();
 
-  void AddReceiver(
-      mojo::PendingReceiver<mojom::ContentFilterRulesProvider> receiver);
-
-  // mojom::ContentFilterRulesProvider methods:
-  void RefreshRules(
-      int64_t current_generation_num, RefreshRulesCallback callback) override;
+  void AddListener(
+      mojo::PendingRemote<mojom::ContentFilterRulesListener> remote);
 
  private:
   static const int kUserDataKey = 0;
 
   ContentFilterRulesConfig();
   void ConfigChanged();
-  void NotifyCallbacks();
-  void SendRulesToClient(RefreshRulesCallback callback) const;
+  void NotifyListeners();
 
   // Returns current rules. Return nullptr if there are no rules / if filtering
   // is disabled.
@@ -67,13 +61,7 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data,
   bool is_filtering_enabled_ = false;
   bool is_notify_pending_ = false;
 
-  // This value is incremented each time the rules are updated. Initialized
-  // to 0 to signify that rules_ are not generated yet.
-  int64_t rules_generation_num_ = 0;
-
-  std::vector<base::OnceClosure> refresh_rules_callbacks_;
-
-  mojo::ReceiverSet<mojom::ContentFilterRulesProvider> receiver_set_;
+  mojo::RemoteSet<mojom::ContentFilterRulesListener> listeners_;
 
   base::WeakPtrFactory<ContentFilterRulesConfig> weak_factory_{this};
 };
