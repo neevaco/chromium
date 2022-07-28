@@ -23,6 +23,7 @@ cp $src/args.gn $out
 (cd $src/gen/weblayer/public/java && zip -r $out/client-java.zip org/chromium/weblayer/WebLayerClientVersionConstants.java)
 (cd $src/../../weblayer/browser/java && zip -r $out/client-aidl.zip $(find org/chromium/weblayer_private/interfaces -name \*.aidl))
 cp -f $src/gen/weblayer/public/java/weblayer_client_manifest/AndroidManifest.xml $out
+cp -f $src/lib.unstripped/libweblayer_test.so.map.gz $out
 
 echo "Done"
 ls -latr $out
