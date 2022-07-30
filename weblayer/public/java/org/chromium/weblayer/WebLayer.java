@@ -795,8 +795,15 @@ public class WebLayer {
             ApplicationInfo info = context.getApplicationInfo();
 
             // TODO: Find a less hacky way of building these paths.
+
             String dexPath = info.splitSourceDirs[0];
-            String libPath = info.splitSourceDirs[1] + "!/lib/arm64-v8a";
+
+            String libPath = info.splitSourceDirs[1];
+            if (libPath.endsWith("arm64_v8a.apk")) {
+                libPath = libPath + "!/lib/arm64-v8a";
+            } else if (libPath.endsWith("armeabi_v7a.apk")) {
+                libPath = libPath + "!/lib/armeabi-v7a";
+            }
 
             // Use DelegateLastClassLoader here instead of PathClassLoader so that the
             // specified dexPath is given preference over the parent dexPath.
