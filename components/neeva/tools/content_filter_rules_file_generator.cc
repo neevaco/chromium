@@ -9,7 +9,6 @@
 #include "base/files/file_util.h"
 #include "base/strings/string_split.h"
 #include "base/strings/string_tokenizer.h"
-#include "base/task/post_task.h"
 #include "components/url_pattern_index/url_pattern_index.h"
 
 using namespace url_pattern_index;
