@@ -8,7 +8,6 @@
 #include "base/callback.h"
 #include "base/files/file.h"
 #include "base/memory/ptr_util.h"
-#include "base/task/post_task.h"
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "content/public/browser/browser_context.h"
 
