@@ -9,6 +9,7 @@
 #include "base/files/file_util.h"
 #include "base/strings/string_split.h"
 #include "base/strings/string_tokenizer.h"
+#include "components/neeva/flat/content_filter_rules_generated.h"
 #include "components/url_pattern_index/url_pattern_index.h"
 
 using namespace url_pattern_index;
@@ -62,12 +63,138 @@ class Generator {
     if (line.empty() || line[0] == '!')
       return;
 
-    // Drop CSS rules
-    if (line.find("##") != base::StringPiece::npos)
-      return;
+    //std::cout << "Processing: " << line << std::endl;
 
-    std::cout << "Processing: " << line << std::endl;
+    size_t divider_pos;
+    if ((divider_pos = line.find("#@#")) != base::StringPiece::npos) {
+      // Domain specific exception for element hiding.
+      ParseDomainSpecificCssRuleException(line, divider_pos, 3);
+    } else if (line.find("#?#") != base::StringPiece::npos) {
+      // Ignored for now. These are dependent on ABP specific style rules.
+    } else if ((divider_pos = line.find("##")) != base::StringPiece::npos) {
+      // Element hiding rule. Optionally domain specific.
+      ParseCssRule(line, divider_pos, 2);
+    } else {
+      ParseUrlRule(line);
+    }
+  }
+    
+  void Finish() {
+    // Create UrlPatternIndex.
+    UrlPatternIndexOffset url_index_offset = index_builder_.Finish();
 
+    using DomainSpecificCssRuleOffset =
+        flatbuffers::Offset<flat::DomainSpecificCssRule>;
+    using StringOffset = flatbuffers::Offset<flatbuffers::String>;
+
+    // Serialize generic selectors.
+    std::vector<StringOffset> selector_offsets;
+    for (const auto& selector : generic_selectors_) {
+      selector_offsets.push_back(flat_builder_.CreateSharedString(selector));
+    }
+    auto generic_selectors_offset =
+        flat_builder_.CreateVector(selector_offsets);
+
+    // Serialize domain specific selectors.
+    std::vector<DomainSpecificCssRuleOffset> domain_specific_offsets;
+    for (const auto& it : domain_selectors_map_) {
+      const std::string& domain = it.first;
+      const CssDomainSelectors& selectors = it.second;
+
+      auto domain_offset = flat_builder_.CreateSharedString(domain);
+
+      // Included selectors.
+      std::vector<StringOffset> included_selectors;
+      for (const auto& selector : selectors.included) {
+        included_selectors.push_back(
+            flat_builder_.CreateSharedString(selector));
+      }
+      auto included_selectors_offset =
+          flat_builder_.CreateVector(included_selectors);
+
+      // Excluded selectors.
+      std::vector<StringOffset> excluded_selectors;
+      for (const auto& selector : selectors.excluded) {
+        excluded_selectors.push_back(
+            flat_builder_.CreateSharedString(selector));
+      }
+      auto excluded_selectors_offset =
+          flat_builder_.CreateVector(excluded_selectors);
+
+      domain_specific_offsets.push_back(flat::CreateDomainSpecificCssRule(
+          flat_builder_, domain_offset, included_selectors_offset, excluded_selectors_offset));
+    }
+
+    flatbuffers::Offset<flatbuffers::Vector<DomainSpecificCssRuleOffset>>
+        domain_specific_selectors_offset =
+            flat_builder_.CreateVector(domain_specific_offsets);
+
+    // Serialize CssRuleList.
+    flatbuffers::Offset<flat::CssRuleList> css_rules_offset =
+        flat::CreateCssRuleList(flat_builder_, generic_selectors_offset,
+                                domain_specific_selectors_offset);
+
+    auto rules_offset = flat::CreateContentFilterRules(
+        flat_builder_, url_index_offset, css_rules_offset);
+
+    flat_builder_.Finish(rules_offset);
+  }
+
+  uint32_t GetSize() const {
+    return flat_builder_.GetSize();
+  }
+
+  uint8_t* GetBufferPointer() const {
+    return flat_builder_.GetBufferPointer();
+  }
+
+ private:
+  using CssSelectorList = std::vector<std::string>;
+  struct CssDomainSelectors {
+    CssSelectorList included;
+    CssSelectorList excluded;
+  };
+  using CssDomainSelectorsMap = std::map<std::string, CssDomainSelectors>;
+
+  void ParseDomainSpecificCssRuleException(
+      const base::StringPiece& line, size_t divider_pos, size_t divider_len) {
+    std::vector<std::string> domain_list;
+    std::string selector;
+    ParseCssLine(line, divider_pos, divider_len, &domain_list, &selector);
+
+    for (const auto& domain : domain_list) {
+      domain_selectors_map_[domain].excluded.push_back(selector);
+    }
+  }
+
+  void ParseCssRule(
+      const base::StringPiece& line, size_t divider_pos, size_t divider_len) {
+    std::vector<std::string> domain_list;
+    std::string selector;
+    ParseCssLine(line, divider_pos, divider_len, &domain_list, &selector);
+
+    if (domain_list.empty()) {
+      generic_selectors_.push_back(selector); 
+    } else {
+      for (const auto& domain : domain_list) {
+        domain_selectors_map_[domain].included.push_back(selector);
+      }
+    }
+  }
+
+  void ParseCssLine(
+      const base::StringPiece& line, size_t divider_pos, size_t divider_len,
+      std::vector<std::string>* domain_list, std::string* selector) {
+    if (divider_pos > 0) {
+      *domain_list = base::SplitString(
+          std::string(line.begin(), divider_pos), ",", base::KEEP_WHITESPACE,
+          base::SPLIT_WANT_NONEMPTY);
+    }
+    *selector =
+        std::string(line.begin() + divider_pos + divider_len, line.end());
+  }
+
+  void ParseUrlRule(const base::StringPiece& line) {
     // Reverse search for first '$' as a regex might contain that character.
     std::string pattern, options;
     size_t divider_index = line.find_last_of("$");
@@ -155,7 +282,6 @@ class Generator {
           
         }
       }
-
     }
 
     /* Uncomment to help debug.
@@ -187,28 +313,15 @@ class Generator {
 
     AddInitiatorDomains(domains, &rule);
 
-    AddUrlRule(rule);
-  }
-    
-  void Finish() {
-    flat_builder_.Finish(index_builder_.Finish());
+    if (!AddUrlRule(rule)) {
+      std::cerr << "failed processing: " << line << std::endl;
+    }
   }
 
-  uint32_t GetSize() const {
-    return flat_builder_.GetSize();
-  }
-
-  uint8_t* GetBufferPointer() const {
-    return flat_builder_.GetBufferPointer();
-  }
-
- private:
   bool AddUrlRule(const proto::UrlRule& rule) {
     auto offset = SerializeUrlRule(rule, &flat_builder_, &domain_map_);
     if (offset.o) {
       index_builder_.IndexUrlRule(offset);
-    } else {
-      std::cerr << "ERROR: SerializeUrlRule failed!" << std::endl;
     }
     return !!offset.o;
   }
@@ -229,6 +342,8 @@ class Generator {
   flatbuffers::FlatBufferBuilder flat_builder_;
   UrlPatternIndexBuilder index_builder_;
   FlatDomainMap domain_map_;
+  CssSelectorList generic_selectors_;
+  CssDomainSelectorsMap domain_selectors_map_;
 };
 
 }  // namespace
@@ -246,7 +361,8 @@ bool ContentFilterRulesFileGenerator::Generate(
   base::StringTokenizer line_tokenizer(input, "\n");
   // Make sure we support the version.
   if (!line_tokenizer.GetNext() ||
-          line_tokenizer.token_piece() != "[Adblock Plus 1.1]") {
+          !(line_tokenizer.token_piece() == "[Adblock Plus 1.1]" ||
+            line_tokenizer.token_piece() == "[Adblock Plus 2.0]")) {
     std::cerr << "ERROR: Unsupported file format" << std::endl;
     return false;
   }

@@ -3,6 +3,7 @@
 executable("make_filter_rules") {
   deps = [
     "//base:base",
+    "//components/neeva/flat:content_filter_rules",
     "//components/url_pattern_index:url_pattern_index",
   ]
   sources = [
