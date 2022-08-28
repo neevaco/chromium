@@ -12,6 +12,7 @@ source_set("renderer") {
   deps = [
     "//base",
     "//components/neeva/common:mojo_bindings",
+    "//components/neeva/flat:content_filter_rules",
     "//components/url_pattern_index",
     "//third_party/blink/public:blink_headers",
     "//url",

@@ -5,6 +5,7 @@
 #include "base/files/memory_mapped_file.h"
 #include "base/strings/stringprintf.h"
 #include "base/threading/sequenced_task_runner_handle.h"
+#include "components/neeva/flat/content_filter_rules_generated.h"
 #include "components/neeva/renderer/content_filter.h"
 #include "components/url_pattern_index/url_pattern_index.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
@@ -130,8 +131,9 @@ void ContentFilteringAgent::OnReceiveNewRules(
                             rules_->rules_data_offset,
                             rules_->rules_data_size);
     if (rules_data_) {
+      const auto* flat_rules = flat::GetContentFilterRules(rules_data_->data());
       matcher_ = std::make_unique<UrlPatternIndexMatcher>(
-          flat::GetUrlPatternIndex(rules_data_->data()));
+          flat_rules->url_pattern_index());
     } else {
       LOG(ERROR) << "Mapping the region failed!";
     }
