@@ -7,6 +7,7 @@
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "components/neeva/flat/content_filter_rules_generated.h"
 #include "components/neeva/renderer/content_filter.h"
+#include "components/neeva/renderer/css_rule_list_matcher.h"
 #include "components/url_pattern_index/url_pattern_index.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "third_party/blink/public/common/thread_safe_browser_interface_broker_proxy.h"
@@ -72,7 +73,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
   // NOTE: Called from any thread.
   base::AutoLock locked(rules_lock_);
 
-  if (!matcher_) {
+  if (!url_matcher_) {
     return ContentFilteringPolicy::kAllow;
   }
 
@@ -84,7 +85,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
-  if (!matcher_->FindMatch(
+  if (!url_matcher_->FindMatch(
           url, first_party_origin, element_type,
           proto::ACTIVATION_TYPE_UNSPECIFIED,
           IsThirdParty(url, first_party_origin),
@@ -122,7 +123,8 @@ void ContentFilteringAgent::OnReceiveNewRules(
   // Update the matcher.
   base::AutoLock locked(rules_lock_);
 
-  matcher_.reset();
+  url_matcher_.reset();
+  css_matcher_.reset();
   rules_data_.reset();
 
   rules_ = std::move(new_rules);
@@ -132,8 +134,10 @@ void ContentFilteringAgent::OnReceiveNewRules(
                             rules_->rules_data_size);
     if (rules_data_) {
       const auto* flat_rules = flat::GetContentFilterRules(rules_data_->data());
-      matcher_ = std::make_unique<UrlPatternIndexMatcher>(
+      url_matcher_ = std::make_unique<UrlPatternIndexMatcher>(
           flat_rules->url_pattern_index());
+      css_matcher_ = std::make_unique<CssRuleListMatcher>(
+          flat_rules->css_rule_list());
     } else {
       LOG(ERROR) << "Mapping the region failed!";
     }

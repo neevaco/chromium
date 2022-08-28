@@ -8,6 +8,8 @@ source_set("renderer") {
     "content_filter.h",
     "content_filtering_agent.cc",
     "content_filtering_agent.h",
+    "css_rule_list_matcher.cc",
+    "css_rule_list_matcher.h",
   ]
   deps = [
     "//base",

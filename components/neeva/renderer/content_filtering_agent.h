@@ -31,6 +31,7 @@ class GURL;
 
 namespace neeva {
 
+class CssRuleListMatcher;
 struct ContentFilteringAgentDeleter;
 
 enum class ContentFilteringPolicy {
@@ -75,7 +76,8 @@ class ContentFilteringAgent
   mutable base::Lock rules_lock_;
   mojom::ContentFilterRulesPtr rules_;
   std::unique_ptr<base::MemoryMappedFile> rules_data_;
-  std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> matcher_;
+  std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> url_matcher_;
+  std::unique_ptr<CssRuleListMatcher> css_matcher_;
 };
 
 struct ContentFilteringAgentDeleter {
