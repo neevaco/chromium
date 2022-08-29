@@ -55,6 +55,11 @@ std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
       base::WrapRefCounted(this), render_frame_id, request);
 }
 
+void ContentFilteringAgent::RunScriptsAtDocumentStart(
+    content::RenderFrame* render_frame) {
+  // TODO: call InsertStyleSheet
+}
+
 void ContentFilteringAgent::OnContentFiltered(
     int32_t render_frame_id, mojom::ContentFilterActionPtr action) {
   if (task_runner_->RunsTasksInCurrentSequence()) {

@@ -19,6 +19,10 @@ class URLLoaderThrottle;
 class WebURLRequest;
 }
 
+namespace content {
+class RenderFrame;
+}
+
 namespace url {
 class Origin;
 }
@@ -50,6 +54,8 @@ class ContentFilteringAgent
 
   std::unique_ptr<blink::URLLoaderThrottle> CreateThrottle(
       int render_frame_id, const blink::WebURLRequest& request);
+
+  void RunScriptsAtDocumentStart(content::RenderFrame* render_frame);
 
   // The following methods may be called on a background thread.
   void OnContentFiltered(
