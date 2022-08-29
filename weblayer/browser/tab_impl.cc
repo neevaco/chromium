@@ -888,7 +888,7 @@ void TabImpl::SetTranslateTargetLanguage(
 }
 
 void TabImpl::SetDesktopUserAgentEnabled(JNIEnv* env, jboolean enable) {
-  if (desktop_user_agent_enabled_ == enable)
+  if (IsDesktopUserAgentEnabled(env) == enable)
     return;
 
   desktop_user_agent_enabled_ = enable;
