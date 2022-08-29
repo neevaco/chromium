@@ -70,6 +70,14 @@ class ContentFilteringAgent
  private:
   friend struct ContentFilteringAgentDeleter;
 
+  struct Filter {
+    Filter();
+    ~Filter();
+    std::unique_ptr<base::MemoryMappedFile> data;
+    std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> url_matcher;
+    std::unique_ptr<CssRuleListMatcher> css_matcher;
+  };
+
   ~ContentFilteringAgent() override;
   void DeleteOnCorrectThread() const;
 
@@ -81,9 +89,7 @@ class ContentFilteringAgent
   // Acquire |rules_lock_| before accessing any of the following fields.
   mutable base::Lock rules_lock_;
   mojom::ContentFilterRulesPtr rules_;
-  std::unique_ptr<base::MemoryMappedFile> rules_data_;
-  std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> url_matcher_;
-  std::unique_ptr<CssRuleListMatcher> css_matcher_;
+  std::vector<Filter> filters_;
 };
 
 struct ContentFilteringAgentDeleter {

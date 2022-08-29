@@ -63,9 +63,6 @@ std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
 
 void ContentFilteringAgent::RunScriptsAtDocumentStart(
     content::RenderFrame* render_frame) {
-  if (!css_matcher_)
-    return;
-
   auto* web_frame = render_frame->GetWebFrame();
   if (!web_frame)
     return;
@@ -74,13 +71,18 @@ void ContentFilteringAgent::RunScriptsAtDocumentStart(
   // documents as well.
   std::string host = web_frame->GetDocument().GetSecurityOrigin().Host().Utf8();
 
-  std::string stylesheet = css_matcher_->GetStyleSheetForHost(host);
-  if (stylesheet.empty())
-    return;
+  for (const auto& filter : filters_) {
+    if (!filter.css_matcher)
+      continue;
 
-  web_frame->GetDocument().InsertStyleSheet(
-      blink::WebString::FromUTF8(stylesheet), nullptr,
-      blink::WebCssOrigin::kUser);
+    std::string stylesheet = filter.css_matcher->GetStyleSheetForHost(host);
+    if (stylesheet.empty())
+      continue;
+
+    web_frame->GetDocument().InsertStyleSheet(
+        blink::WebString::FromUTF8(stylesheet), nullptr,
+        blink::WebCssOrigin::kUser);
+  }
 }
 
 void ContentFilteringAgent::OnContentFiltered(
@@ -101,10 +103,6 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
   // NOTE: Called from any thread.
   base::AutoLock locked(rules_lock_);
 
-  if (!url_matcher_) {
-    return ContentFilteringPolicy::kAllow;
-  }
-
   // Apply top-level host exclusions.
   // TODO: Use a set for more efficient lookup.
   auto end = rules_->top_level_host_exclusions.end();
@@ -113,24 +111,35 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
-  if (!url_matcher_->FindMatch(
-          url, first_party_origin, element_type,
-          proto::ACTIVATION_TYPE_UNSPECIFIED,
-          IsThirdParty(url, first_party_origin),
-          false,
-          UrlPatternIndexMatcher::EmbedderConditionsMatcher(),
-          UrlPatternIndexMatcher::FindRuleStrategy::kAny)) {
-    return ContentFilteringPolicy::kAllow;
+  for (const auto& filter : filters_) {
+    if (!filter.url_matcher)
+      continue;
+
+    if (!filter.url_matcher->FindMatch(
+            url, first_party_origin, element_type,
+            proto::ACTIVATION_TYPE_UNSPECIFIED,
+            IsThirdParty(url, first_party_origin),
+            false,
+            UrlPatternIndexMatcher::EmbedderConditionsMatcher(),
+            UrlPatternIndexMatcher::FindRuleStrategy::kAny)) {
+      continue;
+    }
+
+    // A match was found!
+    switch (rules_->mode) {
+      case mojom::ContentFilterMode::BLOCK_COOKIES:
+        return ContentFilteringPolicy::kBlockCookies;
+      case mojom::ContentFilterMode::BLOCK_REQUESTS:
+        return ContentFilteringPolicy::kBlockRequest;
+    }
   }
 
-  // A match was found!
-  switch (rules_->mode) {
-    case mojom::ContentFilterMode::BLOCK_COOKIES:
-      return ContentFilteringPolicy::kBlockCookies;
-    case mojom::ContentFilterMode::BLOCK_REQUESTS:
-      return ContentFilteringPolicy::kBlockRequest;
-  }
+  return ContentFilteringPolicy::kAllow;
 }
+
+ContentFilteringAgent::Filter::Filter() = default;
+
+ContentFilteringAgent::Filter::~Filter() = default;
 
 ContentFilteringAgent::~ContentFilteringAgent() = default;
 
@@ -151,20 +160,22 @@ void ContentFilteringAgent::OnReceiveNewRules(
   // Update the matcher.
   base::AutoLock locked(rules_lock_);
 
-  url_matcher_.reset();
-  css_matcher_.reset();
-  rules_data_.reset();
+  filters_.clear();
 
   rules_ = std::move(new_rules);
-  if (rules_) {
-    rules_data_ = MapRegion(std::move(rules_->rules_data_fd),
-                            rules_->rules_data_offset,
-                            rules_->rules_data_size);
-    if (rules_data_) {
-      const auto* flat_rules = flat::GetContentFilterRules(rules_data_->data());
-      url_matcher_ = std::make_unique<UrlPatternIndexMatcher>(
+  if (!rules_)
+    return;
+
+  for (auto& data : rules_->data) {
+    Filter filter;
+    filter.data = MapRegion(std::move(data->rules_data_fd),
+                            data->rules_data_offset,
+                            data->rules_data_size);
+    if (filter.data) {
+      const auto* flat_rules = flat::GetContentFilterRules(filter.data->data());
+      filter.url_matcher = std::make_unique<UrlPatternIndexMatcher>(
           flat_rules->url_pattern_index());
-      css_matcher_ = std::make_unique<CssRuleListMatcher>(
+      filter.css_matcher = std::make_unique<CssRuleListMatcher>(
           flat_rules->css_rule_list());
     } else {
       LOG(ERROR) << "Mapping the region failed!";
