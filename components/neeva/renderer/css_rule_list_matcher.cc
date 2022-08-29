@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "base/logging.h"
 #include "components/neeva/flat/content_filter_rules_generated.h"
 
 namespace neeva {
@@ -69,6 +70,8 @@ std::string CssRuleListMatcher::GetStyleSheetForHost(
     stylesheet.erase(stylesheet.end() - 1, stylesheet.end());
     stylesheet.append("{display:none!important;}");
   }
+
+  LOG(INFO) << "Created filter stylesheet: " << stylesheet.size() << " bytes";
 
   return stylesheet;
 }

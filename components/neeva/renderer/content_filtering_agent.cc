@@ -9,8 +9,12 @@
 #include "components/neeva/renderer/content_filter.h"
 #include "components/neeva/renderer/css_rule_list_matcher.h"
 #include "components/url_pattern_index/url_pattern_index.h"
+#include "content/public/renderer/render_frame.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "third_party/blink/public/common/thread_safe_browser_interface_broker_proxy.h"
+#include "third_party/blink/public/platform/web_url.h"
+#include "third_party/blink/public/web/web_document.h"
+#include "third_party/blink/public/web/web_local_frame.h"
 
 using namespace url_pattern_index;
 
@@ -57,7 +61,24 @@ std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
 
 void ContentFilteringAgent::RunScriptsAtDocumentStart(
     content::RenderFrame* render_frame) {
-  // TODO: call InsertStyleSheet
+  if (!css_matcher_)
+    return;
+
+  auto* web_frame = render_frame->GetWebFrame();
+  if (!web_frame)
+    return;
+
+  GURL url = web_frame->GetDocument().Url();
+  if (!url.is_valid())
+    return;
+
+  std::string stylesheet = css_matcher_->GetStyleSheetForHost(url.host());
+  if (stylesheet.empty())
+    return;
+
+  web_frame->GetDocument().InsertStyleSheet(
+      blink::WebString::FromUTF8(stylesheet), nullptr,
+      blink::WebCssOrigin::kUser);
 }
 
 void ContentFilteringAgent::OnContentFiltered(
