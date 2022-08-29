@@ -2,14 +2,28 @@
 
 #include "components/neeva/renderer/css_rule_list_matcher.h"
 
+#include <algorithm>
+
 #include "components/neeva/flat/content_filter_rules_generated.h"
 
 namespace neeva {
 namespace {
 
+void AppendSelector(
+    const flatbuffers::String* selector, std::string* selectors) {
+  selectors->append(selector->begin(), selector->end());
+  selectors->append(1, ',');
+}
+
 bool DomainAllowsSelector(const flat::DomainSpecificCssRule* rule,
-                          const std::string& selector) {
-  return true;  // TODO
+                          const flatbuffers::String* selector) {
+  for (const auto* excluded : *rule->excluded_selectors()) {
+    if (std::equal(selector->begin(), selector->end(),
+                   excluded->begin(), excluded->end())) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace
@@ -30,7 +44,6 @@ CssRuleListMatcher::~CssRuleListMatcher() = default;
 
 std::string CssRuleListMatcher::GetStyleSheetForHost(
     const std::string& host) {
-  // TODO: Add support for domain specific selectors.
   // TODO: Add caching? (maybe better done w/ WebString?)
 
   std::string stylesheet;
@@ -40,12 +53,16 @@ std::string CssRuleListMatcher::GetStyleSheetForHost(
 
   if (rule_list_->generic_selectors()) {
     for (const auto* selector : *rule_list_->generic_selectors()) {
-      std::string selector_str = selector->str();
-      if (!DomainAllowsSelector(domain_rule, selector_str))
+      if (domain_rule && !DomainAllowsSelector(domain_rule, selector))
         continue;
-      stylesheet.append(selector_str);
-      stylesheet.append(1, ',');
+      AppendSelector(selector, &stylesheet);
     }
+  }
+
+  // Add domain specific selectors.
+  if (domain_rule) {
+    for (const auto* selector : *domain_rule->included_selectors())
+      AppendSelector(selector, &stylesheet);
   }
 
   if (!stylesheet.empty()) {
