@@ -12,6 +12,8 @@
 #include "content/public/renderer/render_frame.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "third_party/blink/public/common/thread_safe_browser_interface_broker_proxy.h"
+#include "third_party/blink/public/platform/web_security_origin.h"
+#include "third_party/blink/public/platform/web_string.h"
 #include "third_party/blink/public/platform/web_url.h"
 #include "third_party/blink/public/web/web_document.h"
 #include "third_party/blink/public/web/web_local_frame.h"
@@ -68,11 +70,11 @@ void ContentFilteringAgent::RunScriptsAtDocumentStart(
   if (!web_frame)
     return;
 
-  GURL url = web_frame->GetDocument().Url();
-  if (!url.is_valid())
-    return;
+  // Use the security origin here instead of the URL to cover script generated
+  // documents as well.
+  std::string host = web_frame->GetDocument().GetSecurityOrigin().Host().Utf8();
 
-  std::string stylesheet = css_matcher_->GetStyleSheetForHost(url.host());
+  std::string stylesheet = css_matcher_->GetStyleSheetForHost(host);
   if (stylesheet.empty())
     return;
 
