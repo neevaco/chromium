@@ -5,6 +5,7 @@
 #include "base/files/memory_mapped_file.h"
 #include "base/strings/stringprintf.h"
 #include "base/threading/sequenced_task_runner_handle.h"
+#include "base/time/time.h"
 #include "components/neeva/flat/content_filter_rules_generated.h"
 #include "components/neeva/renderer/content_filter.h"
 #include "components/neeva/renderer/css_rule_list_matcher.h"
@@ -75,9 +76,16 @@ void ContentFilteringAgent::RunScriptsAtDocumentStart(
     if (!filter.css_matcher)
       continue;
 
+    auto ts = base::TimeTicks::Now();
+
     std::string stylesheet = filter.css_matcher->GetStyleSheetForHost(host);
     if (stylesheet.empty())
       continue;
+
+    auto te = base::TimeTicks::Now();
+
+    LOG(INFO) << "Applying filter stylesheet for " << host << ": "
+              << stylesheet.size() << " bytes (td: " << te - ts << ")";
 
     web_frame->GetDocument().InsertStyleSheet(
         blink::WebString::FromUTF8(stylesheet), nullptr,
@@ -102,6 +110,10 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     proto::ElementType element_type) const {
   // NOTE: Called from any thread.
   base::AutoLock locked(rules_lock_);
+
+  if (!rules_) {
+    return ContentFilteringPolicy::kAllow;
+  }
 
   // Apply top-level host exclusions.
   // TODO: Use a set for more efficient lookup.
@@ -141,6 +153,8 @@ ContentFilteringAgent::Filter::Filter() = default;
 
 ContentFilteringAgent::Filter::~Filter() = default;
 
+ContentFilteringAgent::Filter::Filter(Filter&&) = default;
+
 ContentFilteringAgent::~ContentFilteringAgent() = default;
 
 void ContentFilteringAgent::DeleteOnCorrectThread() const {
@@ -177,6 +191,7 @@ void ContentFilteringAgent::OnReceiveNewRules(
           flat_rules->url_pattern_index());
       filter.css_matcher = std::make_unique<CssRuleListMatcher>(
           flat_rules->css_rule_list());
+      filters_.push_back(std::move(filter));
     } else {
       LOG(ERROR) << "Mapping the region failed!";
     }

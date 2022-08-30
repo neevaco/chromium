@@ -36,9 +36,13 @@ ContentFilterRulesConfig* ContentFilterRulesConfig::GetOrCreate(
   return config;
 }
 
-void ContentFilterRulesConfig::SetRulesFile(
-    const std::string& rules_file_apk_path) {
-  rules_file_apk_path_ = rules_file_apk_path;
+void ContentFilterRulesConfig::SetRulesFileEnabled(const std::string& file,
+                                                   bool enable) {
+  if (enable) {
+    rules_files_enabled_.insert(file);
+  } else {
+    rules_files_enabled_.erase(file);
+  }
   ConfigChanged();
 }
 
@@ -112,11 +116,6 @@ mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
   if (!is_filtering_enabled_)
     return nullptr;
 
-  base::MemoryMappedFile::Region region;
-  base::ScopedFD fd(base::android::OpenApkAsset(rules_file_apk_path_, &region));
-  if (fd == -1)
-    return nullptr;
-
   auto rules = mojom::ContentFilterRules::New();
   rules->mode = mode_;
 
@@ -124,13 +123,26 @@ mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
   std::copy(host_exclusions_.begin(), host_exclusions_.end(), hosts.begin());
   rules->top_level_host_exclusions = std::move(hosts);
 
-  auto data = mojom::ContentFilterData::New();
+  for (const auto& file : rules_files_enabled_) {
+    auto data = mojom::ContentFilterData::New();
 
-  data->rules_data_fd = mojo::PlatformHandle(std::move(fd));
-  data->rules_data_offset = region.offset;
-  data->rules_data_size = region.size;
+    std::string apk_path = "assets/" + file + ".dat";
 
-  rules->data.push_back(std::move(data));
+    base::MemoryMappedFile::Region region;
+    base::ScopedFD fd(base::android::OpenApkAsset(apk_path, &region));
+    if (fd == -1) {
+      LOG(ERROR) << "Unable to open resource: " << apk_path;
+      continue;
+    }
+
+    LOG(INFO) << "Adding [" << apk_path << "] to content filtering rules.";
+
+    data->rules_data_fd = mojo::PlatformHandle(std::move(fd));
+    data->rules_data_offset = region.offset;
+    data->rules_data_size = region.size;
+
+    rules->data.push_back(std::move(data));
+  }
 
   return rules;
 }

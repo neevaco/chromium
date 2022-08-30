@@ -73,6 +73,7 @@ class ContentFilteringAgent
   struct Filter {
     Filter();
     ~Filter();
+    Filter(Filter&&);
     std::unique_ptr<base::MemoryMappedFile> data;
     std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> url_matcher;
     std::unique_ptr<CssRuleListMatcher> css_matcher;

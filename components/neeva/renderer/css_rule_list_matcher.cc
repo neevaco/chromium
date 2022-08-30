@@ -71,9 +71,6 @@ std::string CssRuleListMatcher::GetStyleSheetForHost(
     stylesheet.append("{display:none!important;}");
   }
 
-  LOG(INFO) << "Created filter stylesheet for " << host << ": "
-            << stylesheet.size() << " bytes";
-
   return stylesheet;
 }
 
