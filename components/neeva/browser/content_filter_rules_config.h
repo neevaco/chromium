@@ -33,11 +33,12 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   static ContentFilterRulesConfig* GetOrCreate(
       content::BrowserContext* browser_context);
 
-  // Enable or disable a specific rules file. These are string names
-  // corresponding to the resource file without the file path or extension
-  // (e.g., "easylist" or "easyprivacy").
-  void SetRulesFileEnabled(const std::string& rules_file, bool enable);
+  // Enable a specific rules file. These are string names corresponding to the
+  // resource files without the file path or extension (e.g., "easylist" or
+  // "easyprivacy").
+  void EnableRulesFile(const std::string& rules_file);
 
+  void DisableAllRulesFiles();
   void SetMode(mojom::ContentFilterMode mode);
   void AddHostExclusion(const std::string& host);
   void RemoveHostExclusion(const std::string& host);

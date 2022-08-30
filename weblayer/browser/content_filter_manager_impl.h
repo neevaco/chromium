@@ -23,9 +23,9 @@ class ContentFilterManagerImpl {
   ~ContentFilterManagerImpl();
 
 #if BUILDFLAG(IS_ANDROID)
-  void SetRulesFileEnabled(
-      JNIEnv* env, const base::android::JavaParamRef<jstring>& rules_file,
-      jboolean enabled);
+  void EnableRulesFile(
+      JNIEnv* env, const base::android::JavaParamRef<jstring>& rules_file);
+  void DisableAllRulesFiles(JNIEnv* env);
   void SetMode(JNIEnv* env, int mode);
   void AddHostExclusion(
       JNIEnv* env, const base::android::JavaParamRef<jstring>& host);

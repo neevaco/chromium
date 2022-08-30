@@ -36,13 +36,13 @@ ContentFilterRulesConfig* ContentFilterRulesConfig::GetOrCreate(
   return config;
 }
 
-void ContentFilterRulesConfig::SetRulesFileEnabled(const std::string& file,
-                                                   bool enable) {
-  if (enable) {
-    rules_files_enabled_.insert(file);
-  } else {
-    rules_files_enabled_.erase(file);
-  }
+void ContentFilterRulesConfig::EnableRulesFile(const std::string& file) {
+  rules_files_enabled_.insert(file);
+  ConfigChanged();
+}
+
+void ContentFilterRulesConfig::DisableAllRulesFiles() {
+  rules_files_enabled_.clear();
   ConfigChanged();
 }
 
