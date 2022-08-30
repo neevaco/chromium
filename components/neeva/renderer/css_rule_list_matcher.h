@@ -6,6 +6,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "base/containers/lru_cache.h"
+
 namespace neeva {
 
 namespace flat {
@@ -27,8 +29,14 @@ class CssRuleListMatcher {
   // Must outlive this instance.
   const flat::CssRuleList* rule_list_;
 
-  std::unordered_map<const char* /*domain*/,
+  std::unordered_map<std::string /*domain*/,
                      const flat::DomainSpecificCssRule*> domain_map_;
+
+  // A small cache of computed stylesheets. Sized to shoot for a total memory
+  // usage of about 1.2M (based on a typical stylesheet size of 400K). This is
+  // fixed overhead for each renderer, but since computing stylesheets can take
+  // a few milliseconds, this cost is worth it.
+  base::LRUCache<std::string /*host*/, std::string /*stylesheet*/> cache_{3};
 };
 
 }  // namespace neeva

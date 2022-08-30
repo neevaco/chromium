@@ -36,19 +36,23 @@ CssRuleListMatcher::CssRuleListMatcher(const flat::CssRuleList* rule_list)
     for (const auto* rule : *rule_list_->domain_specific_selectors()) {
       if (!rule->domain())
         continue;
-      domain_map_.insert(std::make_pair(rule->domain()->c_str(), rule));
+      domain_map_.insert(std::make_pair(rule->domain()->str(), rule));
     }
   }
+  LOG(INFO) << "domain_map_.size() => " << domain_map_.size();
 }
 
 CssRuleListMatcher::~CssRuleListMatcher() = default;
 
 std::string CssRuleListMatcher::GetStyleSheetForHost(
     const std::string& host) {
-  // TODO: Add caching? (maybe better done w/ WebString?)
+  // TODO: Store WebString here instead?
+  auto it = cache_.Get(host);
+  if (it != cache_.end())
+    return it->second;
 
   std::string stylesheet;
-  stylesheet.reserve(4096);  // TODO: Choose more wisely?
+  stylesheet.reserve(410000);  // Optimized for easylist.txt.
 
   const flat::DomainSpecificCssRule* domain_rule = FindRuleForHost(host);
 
@@ -71,6 +75,7 @@ std::string CssRuleListMatcher::GetStyleSheetForHost(
     stylesheet.append("{display:none!important;}");
   }
 
+  cache_.Put(host, stylesheet);
   return stylesheet;
 }
 
@@ -78,9 +83,11 @@ const flat::DomainSpecificCssRule* CssRuleListMatcher::FindRuleForHost(
     const std::string& host) const {
   // Check given |host| first. If not found, look for matching subdomain.
 
-  auto it = domain_map_.find(host.c_str());
-  if (it != domain_map_.end())
+  auto it = domain_map_.find(host);
+  if (it != domain_map_.end()) {
+    LOG(INFO) << "Found domain specific rules for: " << host;
     return it->second;
+  }
 
   auto dot_offset = host.find_first_of('.');
   if (dot_offset == std::string::npos)
