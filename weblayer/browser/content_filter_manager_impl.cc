@@ -35,12 +35,11 @@ ContentFilterManagerImpl::ContentFilterManagerImpl(
 ContentFilterManagerImpl::~ContentFilterManagerImpl() = default;
 
 #if BUILDFLAG(IS_ANDROID)
-void ContentFilterManagerImpl::SetRulesFile(
-    JNIEnv* env, const base::android::JavaParamRef<jstring>& apk_path) {
-  // TODO: Add plumbing through the Java API.
-  auto* config = neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_);
-  config->SetRulesFileEnabled("easyprivacy", true);
-  config->SetRulesFileEnabled("easylist", true);
+void ContentFilterManagerImpl::SetRulesFileEnabled(
+    JNIEnv* env, const base::android::JavaParamRef<jstring>& rules_file,
+    jboolean enabled) {
+  neeva::ContentFilterRulesConfig::GetOrCreate(browser_context_)->
+      SetRulesFileEnabled(ConvertJavaStringToUTF8(rules_file), enabled);
 }
 
 void ContentFilterManagerImpl::SetMode(JNIEnv* env, int mode) {

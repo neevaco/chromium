@@ -29,9 +29,10 @@ public final class ContentFilterManagerImpl extends IContentFilterManager.Stub {
     }
 
     @Override
-    public void setRulesFile(String apkPath) {
+    public void setRulesFileEnabled(String rules_file, boolean enabled) {
         StrictModeWorkaround.apply();
-        ContentFilterManagerImplJni.get().setRulesFile(mNativeContentFilterManager, apkPath);
+        ContentFilterManagerImplJni.get().setRulesFileEnabled(
+            mNativeContentFilterManager, rules_file, enabled);
     }
 
     @Override
@@ -72,7 +73,8 @@ public final class ContentFilterManagerImpl extends IContentFilterManager.Stub {
 
     @NativeMethods
     interface Natives {
-        void setRulesFile(long nativeContentFilterManagerImpl, String rulesFile);
+        void setRulesFileEnabled(
+            long nativeContentFilterManagerImpl, String rulesFile, boolean enabled);
         void setMode(long nativeContentFilterManagerImpl, int mode);
         void addHostExclusion(long nativeContentFilterManagerImpl, String host);
         void removeHostExclusion(long nativeContentFilterManagerImpl, String host);
