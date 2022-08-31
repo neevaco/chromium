@@ -135,8 +135,6 @@ mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
       continue;
     }
 
-    LOG(INFO) << "Adding [" << apk_path << "] to content filtering rules.";
-
     data->rules_data_fd = mojo::PlatformHandle(std::move(fd));
     data->rules_data_offset = region.offset;
     data->rules_data_size = region.size;
