@@ -76,16 +76,9 @@ void ContentFilteringAgent::RunScriptsAtDocumentStart(
     if (!filter.css_matcher)
       continue;
 
-    auto ts = base::TimeTicks::Now();
-
     std::string stylesheet = filter.css_matcher->GetStyleSheetForHost(host);
     if (stylesheet.empty())
       continue;
-
-    auto te = base::TimeTicks::Now();
-
-    LOG(INFO) << "Applying filter stylesheet for " << host << ": "
-              << stylesheet.size() << " bytes (td: " << te - ts << ")";
 
     web_frame->GetDocument().InsertStyleSheet(
         blink::WebString::FromUTF8(stylesheet), nullptr,

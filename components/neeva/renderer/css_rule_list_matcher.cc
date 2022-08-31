@@ -4,7 +4,6 @@
 
 #include <algorithm>
 
-#include "base/logging.h"
 #include "components/neeva/flat/content_filter_rules_generated.h"
 
 namespace neeva {
@@ -39,14 +38,12 @@ CssRuleListMatcher::CssRuleListMatcher(const flat::CssRuleList* rule_list)
       domain_map_.insert(std::make_pair(rule->domain()->str(), rule));
     }
   }
-  LOG(INFO) << "domain_map_.size() => " << domain_map_.size();
 }
 
 CssRuleListMatcher::~CssRuleListMatcher() = default;
 
 std::string CssRuleListMatcher::GetStyleSheetForHost(
     const std::string& host) {
-  // TODO: Store WebString here instead?
   auto it = cache_.Get(host);
   if (it != cache_.end())
     return it->second;
@@ -97,10 +94,8 @@ const flat::DomainSpecificCssRule* CssRuleListMatcher::FindRuleForHost(
   // Check given |host| first. If not found, look for matching subdomain.
 
   auto it = domain_map_.find(host);
-  if (it != domain_map_.end()) {
-    LOG(INFO) << "Found domain specific rules for: " << host;
+  if (it != domain_map_.end())
     return it->second;
-  }
 
   auto dot_offset = host.find_first_of('.');
   if (dot_offset == std::string::npos)
