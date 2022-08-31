@@ -51,10 +51,17 @@ std::string CssRuleListMatcher::GetStyleSheetForHost(
   if (it != cache_.end())
     return it->second;
 
+  const flat::DomainSpecificCssRule* domain_rule = FindRuleForHost(host);
+
+  if (!domain_rule) {
+    // Look for cached generic-only stylesheet.
+    auto it = cache_.Get("*");
+    if (it != cache_.end())
+      return it->second;
+  }
+
   std::string stylesheet;
   stylesheet.reserve(410000);  // Optimized for easylist.txt.
-
-  const flat::DomainSpecificCssRule* domain_rule = FindRuleForHost(host);
 
   if (rule_list_->generic_selectors()) {
     for (const auto* selector : *rule_list_->generic_selectors()) {
@@ -75,7 +82,13 @@ std::string CssRuleListMatcher::GetStyleSheetForHost(
     stylesheet.append("{display:none!important;}");
   }
 
-  cache_.Put(host, stylesheet);
+  // Cache to speed up future lookups.
+  if (domain_rule) {
+    cache_.Put(host, stylesheet);
+  } else {
+    cache_.Put("*", stylesheet);
+  }
+
   return stylesheet;
 }
 
