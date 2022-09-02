@@ -23,6 +23,8 @@ class CssRuleListMatcher {
  std::string GetStyleSheetForHost(const std::string& host);
 
  private:
+  bool HasRules() const;
+
   const flat::DomainSpecificCssRule* FindRuleForHost(
       const std::string& host) const;
 

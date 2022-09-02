@@ -44,6 +44,9 @@ CssRuleListMatcher::~CssRuleListMatcher() = default;
 
 std::string CssRuleListMatcher::GetStyleSheetForHost(
     const std::string& host) {
+  if (!HasRules())
+    return std::string();
+
   auto it = cache_.Get(host);
   if (it != cache_.end())
     return it->second;
@@ -58,7 +61,7 @@ std::string CssRuleListMatcher::GetStyleSheetForHost(
   }
 
   std::string stylesheet;
-  stylesheet.reserve(410000);  // Optimized for easylist.txt.
+  stylesheet.reserve(410000);  // Optimized for easylist.
 
   if (rule_list_->generic_selectors()) {
     for (const auto* selector : *rule_list_->generic_selectors()) {
@@ -87,6 +90,11 @@ std::string CssRuleListMatcher::GetStyleSheetForHost(
   }
 
   return stylesheet;
+}
+
+bool CssRuleListMatcher::HasRules() const {
+  return !domain_map_.empty() || (rule_list_->generic_selectors() &&
+                                  rule_list_->generic_selectors()->size() > 0);
 }
 
 const flat::DomainSpecificCssRule* CssRuleListMatcher::FindRuleForHost(
