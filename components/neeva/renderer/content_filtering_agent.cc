@@ -72,14 +72,31 @@ void ContentFilteringAgent::RunScriptsAtDocumentStart(
   // documents as well.
   std::string host = web_frame->GetDocument().GetSecurityOrigin().Host().Utf8();
 
-  for (const auto& filter : filters_) {
-    if (!filter.css_matcher)
-      continue;
+  std::vector<std::string> stylesheets;
+  {
+    // Protect access to |rules_| and |filters_|. NOTE: This should only be
+    // called on the same thread that mutates these objects, so this lock
+    // shouldn't be necessary, but guard access for consistency.
+    base::AutoLock locked(rules_lock_);
 
-    std::string stylesheet = filter.css_matcher->GetStyleSheetForHost(host);
-    if (stylesheet.empty())
-      continue;
+    if (!rules_ || rules_->mode == mojom::ContentFilterMode::BLOCK_COOKIES)
+      return;
 
+    for (const auto& filter : filters_) {
+      if (!filter.css_matcher)
+        continue;
+
+      std::string stylesheet = filter.css_matcher->GetStyleSheetForHost(host);
+      if (stylesheet.empty())
+        continue;
+
+      // Queue up the stylesheets here to minimize what code gets run while
+      // holding |rules_lock_|.
+      stylesheets.push_back(std::move(stylesheet));
+    }
+  }
+
+  for (const auto& stylesheet : stylesheets) {
     web_frame->GetDocument().InsertStyleSheet(
         blink::WebString::FromUTF8(stylesheet), nullptr,
         blink::WebCssOrigin::kUser);
