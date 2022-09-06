@@ -16,10 +16,10 @@ namespace weblayer {
 
 URLLoaderThrottleProvider::URLLoaderThrottleProvider(
     blink::ThreadSafeBrowserInterfaceBrokerProxy* broker,
-    blink::URLLoaderThrottleProviderType type)
+    blink::URLLoaderThrottleProviderType type,
+    scoped_refptr<neeva::ContentFilteringAgent> content_filtering_agent)
     : type_(type),
-      neeva_content_filtering_agent_(
-          base::MakeRefCounted<neeva::ContentFilteringAgent>(broker)) {
+      neeva_content_filtering_agent_(std::move(content_filtering_agent)) {
   DETACH_FROM_THREAD(thread_checker_);
   broker->GetInterface(safe_browsing_remote_.InitWithNewPipeAndPassReceiver());
 }

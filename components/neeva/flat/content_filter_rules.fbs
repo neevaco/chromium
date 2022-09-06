@@ -1,0 +1,27 @@
+// Copyright Neeva. All rights reserved.
+
+include "components/url_pattern_index/flat/url_pattern_index.fbs";
+
+namespace neeva.flat;
+
+table DomainSpecificCssRule {
+  domain : string;
+  included_selectors : [string];
+  excluded_selectors : [string];
+}
+
+table CssRuleList {
+  // The set of CSS selectors that apply to all pages.
+  generic_selectors : [string];
+
+  // The set of CSS selectors that apply to specific domains.
+  // TODO: Optimize storage for fast lookup by domain.
+  domain_specific_selectors : [DomainSpecificCssRule];
+}
+
+table ContentFilterRules {
+  url_pattern_index : url_pattern_index.flat.UrlPatternIndex;
+  css_rule_list : CssRuleList;
+}
+
+root_type ContentFilterRules;

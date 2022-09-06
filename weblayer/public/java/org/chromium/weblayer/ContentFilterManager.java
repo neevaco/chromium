@@ -30,13 +30,21 @@ public class ContentFilterManager {
     }
 
     /**
-     * Sets the given rules file as the active rules file.
-     * @param apkPath the relative path into the APK where the rules file can
-     * be found (e.g., "assets/easyprivacy.proto").
+     * Enables or disables the given rules file.
+     * @param rulesFile the file name, excluding path and extension, of the rules file
+     * (e.g., "easyprivacy" or "easylist") to enable or disable.
      */
-    public void setRulesFile(String apkPath) {
+    public void enableRulesFile(String rulesFile) {
         try {
-            mImpl.setRulesFile(apkPath);
+            mImpl.enableRulesFile(rulesFile);
+        } catch (RemoteException e) {
+            throw new APICallException(e);
+        }
+    }
+
+    public void disableAllRulesFiles() {
+        try {
+            mImpl.disableAllRulesFiles();
         } catch (RemoteException e) {
             throw new APICallException(e);
         }

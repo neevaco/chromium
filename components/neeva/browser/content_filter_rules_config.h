@@ -33,7 +33,12 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   static ContentFilterRulesConfig* GetOrCreate(
       content::BrowserContext* browser_context);
 
-  void SetRulesFile(const std::string& rules_file_apk_path);
+  // Enable a specific rules file. These are string names corresponding to the
+  // resource files without the file path or extension (e.g., "easylist" or
+  // "easyprivacy").
+  void EnableRulesFile(const std::string& rules_file);
+
+  void DisableAllRulesFiles();
   void SetMode(mojom::ContentFilterMode mode);
   void AddHostExclusion(const std::string& host);
   void RemoveHostExclusion(const std::string& host);
@@ -55,9 +60,9 @@ class ContentFilterRulesConfig : public base::SupportsUserData::Data {
   // is disabled.
   mojom::ContentFilterRulesPtr GetRules() const;
 
-  std::string rules_file_apk_path_;
-  mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;
+  std::set<std::string> rules_files_enabled_;
   std::set<std::string> host_exclusions_;
+  mojom::ContentFilterMode mode_ = mojom::ContentFilterMode::BLOCK_COOKIES;
   bool is_filtering_enabled_ = false;
   bool is_notify_pending_ = false;
 
