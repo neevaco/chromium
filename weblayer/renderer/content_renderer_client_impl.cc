@@ -99,6 +99,10 @@ void ContentRendererClientImpl::RenderThreadStarted() {
   browser_interface_broker_ =
       blink::Platform::Current()->GetBrowserInterfaceBroker();
 
+  neeva_content_filtering_agent_ =
+      base::MakeRefCounted<neeva::ContentFilteringAgent>(
+          browser_interface_broker_.get());
+
   subresource_filter_ruleset_dealer_ =
       std::make_unique<subresource_filter::UnverifiedRulesetDealer>();
   thread->AddObserver(subresource_filter_ruleset_dealer_.get());
@@ -211,7 +215,8 @@ std::unique_ptr<blink::URLLoaderThrottleProvider>
 ContentRendererClientImpl::CreateURLLoaderThrottleProvider(
     blink::URLLoaderThrottleProviderType provider_type) {
   return std::make_unique<URLLoaderThrottleProvider>(
-      browser_interface_broker_.get(), provider_type);
+      browser_interface_broker_.get(), provider_type,
+      neeva_content_filtering_agent_);
 }
 
 void ContentRendererClientImpl::GetSupportedKeySystems(
@@ -224,6 +229,11 @@ void ContentRendererClientImpl::GetSupportedKeySystems(
   cdm::AddAndroidPlatformKeySystems(&key_systems);
 #endif  // BUILDFLAG(IS_ANDROID)
   std::move(cb).Run(std::move(key_systems));
+}
+
+void ContentRendererClientImpl::RunScriptsAtDocumentStart(
+    content::RenderFrame* render_frame) {
+  neeva_content_filtering_agent_->RunScriptsAtDocumentStart(render_frame);
 }
 
 void ContentRendererClientImpl::

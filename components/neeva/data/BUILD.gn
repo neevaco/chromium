@@ -7,7 +7,10 @@ if (is_android) {
 
 if (is_android) {
   android_assets("neeva_assets") {
-    sources = [ "easyprivacy.dat" ]
+    sources = [
+      "easylist.dat",
+      "easyprivacy.dat"
+    ]
     disable_compression = true
   }
 }

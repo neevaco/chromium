@@ -23,13 +23,14 @@ class ContentFilterManagerImpl {
   ~ContentFilterManagerImpl();
 
 #if BUILDFLAG(IS_ANDROID)
-  void SetRulesFile(JNIEnv* env,
-                    const base::android::JavaParamRef<jstring>& apk_path);
+  void EnableRulesFile(
+      JNIEnv* env, const base::android::JavaParamRef<jstring>& rules_file);
+  void DisableAllRulesFiles(JNIEnv* env);
   void SetMode(JNIEnv* env, int mode);
-  void AddHostExclusion(JNIEnv* env,
-                        const base::android::JavaParamRef<jstring>& host);
-  void RemoveHostExclusion(JNIEnv* env,
-                           const base::android::JavaParamRef<jstring>& host);
+  void AddHostExclusion(
+      JNIEnv* env, const base::android::JavaParamRef<jstring>& host);
+  void RemoveHostExclusion(
+      JNIEnv* env, const base::android::JavaParamRef<jstring>& host);
   void ClearAllHostExclusions(JNIEnv* env);
   void StartFiltering(JNIEnv* env);
   void StopFiltering(JNIEnv* env);

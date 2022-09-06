@@ -21,7 +21,8 @@ class URLLoaderThrottleProvider : public blink::URLLoaderThrottleProvider {
  public:
   URLLoaderThrottleProvider(
       blink::ThreadSafeBrowserInterfaceBrokerProxy* broker,
-      blink::URLLoaderThrottleProviderType type);
+      blink::URLLoaderThrottleProviderType type,
+      scoped_refptr<neeva::ContentFilteringAgent> content_filtering_agent);
 
   URLLoaderThrottleProvider& operator=(const URLLoaderThrottleProvider&) =
       delete;

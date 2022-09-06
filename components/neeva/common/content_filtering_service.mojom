@@ -7,14 +7,16 @@ enum ContentFilterMode {
   BLOCK_REQUESTS
 };
 
-struct ContentFilterRules {
-  ContentFilterMode mode;
-  array<string> top_level_host_exclusions;
-
-  // Where the rules can be found.
+struct ContentFilterData {
   handle<platform> rules_data_fd;
   uint64 rules_data_offset;
   uint64 rules_data_size;
+};
+
+struct ContentFilterRules {
+  ContentFilterMode mode;
+  array<string> top_level_host_exclusions;
+  array<ContentFilterData> data;
 };
 
 struct ContentFilterAction {

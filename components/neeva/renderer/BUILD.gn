@@ -8,10 +8,13 @@ source_set("renderer") {
     "content_filter.h",
     "content_filtering_agent.cc",
     "content_filtering_agent.h",
+    "css_rule_list_matcher.cc",
+    "css_rule_list_matcher.h",
   ]
   deps = [
     "//base",
     "//components/neeva/common:mojo_bindings",
+    "//components/neeva/flat:content_filter_rules",
     "//components/url_pattern_index",
     "//third_party/blink/public:blink_headers",
     "//url",
