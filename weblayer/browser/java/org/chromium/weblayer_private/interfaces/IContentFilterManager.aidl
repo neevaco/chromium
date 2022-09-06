@@ -6,11 +6,12 @@ package org.chromium.weblayer_private.interfaces;
  * Controls per-profile content filtering rules.
  */
 interface IContentFilterManager {
-  void setRulesFile(in String rulesFile) = 1;
-  void setMode(in int mode) = 2;
-  void addHostExclusion(in String hostExclusion) = 3;
-  void removeHostExclusion(in String hostExclusion) = 4;
-  void clearAllHostExclusions() = 5;
-  void startFiltering() = 6;
-  void stopFiltering() = 7;
+  void enableRulesFile(in String rulesFile) = 1;
+  void disableAllRulesFiles() = 2;
+  void setMode(in int mode) = 3;
+  void addHostExclusion(in String hostExclusion) = 4;
+  void removeHostExclusion(in String hostExclusion) = 5;
+  void clearAllHostExclusions() = 6;
+  void startFiltering() = 7;
+  void stopFiltering() = 8;
 }

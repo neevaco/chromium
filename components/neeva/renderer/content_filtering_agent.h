@@ -19,6 +19,10 @@ class URLLoaderThrottle;
 class WebURLRequest;
 }
 
+namespace content {
+class RenderFrame;
+}
+
 namespace url {
 class Origin;
 }
@@ -31,6 +35,7 @@ class GURL;
 
 namespace neeva {
 
+class CssRuleListMatcher;
 struct ContentFilteringAgentDeleter;
 
 enum class ContentFilteringPolicy {
@@ -50,6 +55,8 @@ class ContentFilteringAgent
   std::unique_ptr<blink::URLLoaderThrottle> CreateThrottle(
       int render_frame_id, const blink::WebURLRequest& request);
 
+  void RunScriptsAtDocumentStart(content::RenderFrame* render_frame);
+
   // The following methods may be called on a background thread.
   void OnContentFiltered(
       int32_t render_frame_id, mojom::ContentFilterActionPtr action);
@@ -63,6 +70,15 @@ class ContentFilteringAgent
  private:
   friend struct ContentFilteringAgentDeleter;
 
+  struct Filter {
+    Filter();
+    ~Filter();
+    Filter(Filter&&);
+    std::unique_ptr<base::MemoryMappedFile> data;
+    std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> url_matcher;
+    std::unique_ptr<CssRuleListMatcher> css_matcher;
+  };
+
   ~ContentFilteringAgent() override;
   void DeleteOnCorrectThread() const;
 
@@ -74,8 +90,7 @@ class ContentFilteringAgent
   // Acquire |rules_lock_| before accessing any of the following fields.
   mutable base::Lock rules_lock_;
   mojom::ContentFilterRulesPtr rules_;
-  std::unique_ptr<base::MemoryMappedFile> rules_data_;
-  std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> matcher_;
+  std::vector<Filter> filters_;
 };
 
 struct ContentFilteringAgentDeleter {
