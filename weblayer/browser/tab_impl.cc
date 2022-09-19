@@ -945,7 +945,7 @@ base::android::ScopedJavaLocalRef<jobjectArray> TabImpl::GetContentFilterHosts(
   std::vector<std::string> hosts;
 
   auto* stats = neeva::ContentFilterStats::GetForCurrentDocument(
-      web_contents_->GetMainFrame());
+      web_contents_->GetPrimaryMainFrame());
   if (stats) {
     for (const auto& it : stats->data()) {
       hosts.push_back(it.first);
@@ -960,7 +960,7 @@ jint TabImpl::GetContentFilterCountForHost(
   int count = 0;
 
   auto* stats = neeva::ContentFilterStats::GetForCurrentDocument(
-      web_contents_->GetMainFrame());
+      web_contents_->GetPrimaryMainFrame());
   if (stats) {
     auto it =
         stats->data().find(base::android::ConvertJavaStringToUTF8(env, host));
