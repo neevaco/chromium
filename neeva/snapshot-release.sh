@@ -17,8 +17,13 @@ cp $src/apks/WebLayerSupport.apk $out
 cp $src/apks/WebLayerShell.apk $out
 cp $src/args.gn $out
 
+get_list_of_public_java_sources() {
+  # Exclude unneeded browser sandbox code.
+  find org/chromium/weblayer -name \*.java | grep -v BrowserSandboxService.java
+}
+
 (cd $src/../../weblayer/public/java && zip -r $out/client-res.zip res)
-(cd $src/../../weblayer/public/java && zip -r $out/client-java.zip $(find . -name \*.java))
+(cd $src/../../weblayer/public/java && zip -r $out/client-java.zip $(get_list_of_public_java_sources))
 (cd $src/../../weblayer/browser/java && zip -r $out/client-java.zip $(find org/chromium/weblayer_private/interfaces -name \*.java))
 (cd $src/gen/weblayer/public/java && zip -r $out/client-java.zip org/chromium/weblayer/WebLayerClientVersionConstants.java)
 (cd $src/../../weblayer/browser/java && zip -r $out/client-aidl.zip $(find org/chromium/weblayer_private/interfaces -name \*.aidl))
