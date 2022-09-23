@@ -1774,7 +1774,13 @@ void DownloadItemImpl::OnDownloadTargetDetermined(
     return;
   }
 
-  destination_info_.target_path = target_path;
+  // Neeva(kobec): Rename target_path in case there is already a file with the same name. 
+  base::FilePath new_target_path = base::GetUniquePath(target_path);
+  if (new_target_path.empty()) {
+    new_target_path = target_path;
+  }
+  
+  destination_info_.target_path = new_target_path;
   destination_info_.target_disposition = disposition;
   SetDangerType(danger_type);
   mixed_content_status_ = mixed_content_status;
@@ -1795,7 +1801,7 @@ void DownloadItemImpl::OnDownloadTargetDetermined(
   // We want the intermediate and target paths to refer to the same directory so
   // that they are both on the same device and subject to same
   // space/permission/availability constraints.
-  DCHECK(intermediate_path.DirName() == target_path.DirName());
+  DCHECK(intermediate_path.DirName() == new_target_path.DirName());
 
   // During resumption, we may choose to proceed with the same intermediate
   // file. No rename is necessary if our intermediate file already has the
