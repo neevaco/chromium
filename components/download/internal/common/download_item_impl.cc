@@ -1773,7 +1773,7 @@ void DownloadItemImpl::OnDownloadTargetDetermined(
     OnTargetResolved();
     return;
   }
-  
+
   destination_info_.target_path = target_path;
   destination_info_.target_disposition = disposition;
   SetDangerType(danger_type);
