@@ -43,8 +43,27 @@ void GenerateFilename(
     base::CreateDirectory(suggested_directory);
 
   base::FilePath suggested_path(suggested_directory.Append(generated_name));
+
+  // Neeva(kobec): Rename target_path in case there is already a file with the same name. 
+  base::FilePath unique_target_path = base::GetUniquePath(suggested_path);
+
+  if (unique_target_path.empty()) {
+    // We ran out of unique numbers for this filename.
+    
+    // Generate an ISO8601 compliant local timestamp suffix that avoids
+    // reserved characters that are forbidden on some OSes like Windows.
+    base::Time::Exploded exploded;
+    base::Time::Now().LocalExplode(&exploded);
+    std::string suffix(base::StringPrintf(
+          " - %04d-%02d-%02dT%02d%02d%02d.%03d", exploded.year, exploded.month,
+          exploded.day_of_month, exploded.hour, exploded.minute,
+          exploded.second, exploded.millisecond));
+
+    unique_target_path = suggested_path.InsertBeforeExtensionASCII(suffix);
+  }
+
   content::GetUIThreadTaskRunner({})->PostTask(
-      FROM_HERE, base::BindOnce(std::move(callback), suggested_path));
+      FROM_HERE, base::BindOnce(std::move(callback), unique_target_path));
 }
 
 }  // namespace
