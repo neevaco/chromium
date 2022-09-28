@@ -53,7 +53,7 @@ void GenerateFilename(
     // Generate an ISO8601 compliant local timestamp suffix that avoids
     // reserved characters that are forbidden on some OSes like Windows.
     base::Time::Exploded exploded;
-    base::Time().LocalExplode(&exploded);
+    base::Time::Now().LocalExplode(&exploded);
     std::string suffix(base::StringPrintf(
           " - %04d-%02d-%02dT%02d%02d%02d.%03d", exploded.year, exploded.month,
           exploded.day_of_month, exploded.hour, exploded.minute,
