@@ -88,6 +88,6 @@ interface ITab {
   void setExternalIntentInIncognitoCallbackClient(IExternalIntentInIncognitoCallbackClient client) = 33;
 
   // Neeva additions:
-  Map getContentFilterStats() = 98;
+  Map getContentFilterStats(in String rulesFile) = 98;
   void setContentFilterCallbackClient(IContentFilterCallbackClient client) = 99;
 }

@@ -87,7 +87,9 @@ void ContentFilter::WillStartRequest(
 
   auto element_type = GetElementTypeForRequest(request_context_type_);
 
-  switch (agent_->GetPolicyForRequest(request->url, top_frame_origin_, element_type)) {
+  std::string rules_name;
+  switch (agent_->GetPolicyForRequest(
+      request->url, top_frame_origin_, element_type, &rules_name)) {
     case ContentFilteringPolicy::kAllow:
       return;
     case ContentFilteringPolicy::kBlockCookies:
@@ -102,6 +104,7 @@ void ContentFilter::WillStartRequest(
 
   // Report content filtering.
   mojom::ContentFilterActionPtr action(mojom::ContentFilterAction::New());
+  action->rules_name = rules_name;
   action->host = request->url.host();
   agent_->OnContentFiltered(render_frame_id_, std::move(action));
 }

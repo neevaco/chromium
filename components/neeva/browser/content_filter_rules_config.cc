@@ -14,7 +14,22 @@
 namespace neeva {
 
 // static
+const char* ContentFilterRulesConfig::kValidRulesFiles[2] = {
+  "easyprivacy",
+  "easylist"
+};
+
+// static
 const int ContentFilterRulesConfig::kUserDataKey;
+
+// static
+bool ContentFilterRulesConfig::IsValidRulesFile(const std::string& file) {
+  for (const auto* valid_file : kValidRulesFiles) {
+    if (file == valid_file)
+      return true;
+  }
+  return false;
+}
 
 ContentFilterRulesConfig::~ContentFilterRulesConfig() = default;
 
@@ -37,6 +52,10 @@ ContentFilterRulesConfig* ContentFilterRulesConfig::GetOrCreate(
 }
 
 void ContentFilterRulesConfig::EnableRulesFile(const std::string& file) {
+  if (!IsValidRulesFile(file)) {
+    LOG(ERROR) << "Unexpected rules file: " << file;
+    return;
+  }
   rules_files_enabled_.insert(file);
   ConfigChanged();
 }
@@ -135,6 +154,7 @@ mojom::ContentFilterRulesPtr ContentFilterRulesConfig::GetRules() const {
       continue;
     }
 
+    data->rules_name = file;
     data->rules_data_fd = mojo::PlatformHandle(std::move(fd));
     data->rules_data_offset = region.offset;
     data->rules_data_size = region.size;

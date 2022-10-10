@@ -58,7 +58,7 @@ void ContentFilteringService::OnContentFiltered(
   rfh = rfh->GetMainFrame();
 
   ContentFilterStats::GetOrCreateForCurrentDocument(rfh)->RecordFilteredHost(
-      action->host);
+      action->rules_name, action->host);
 
   auto* web_contents = content::WebContents::FromRenderFrameHost(rfh);
   if (web_contents) {

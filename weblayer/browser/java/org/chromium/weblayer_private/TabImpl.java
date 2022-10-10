@@ -746,12 +746,13 @@ public final class TabImpl extends ITab.Stub {
     }
 
     @Override
-    public Map getContentFilterStats() {
+    public Map getContentFilterStats(String rulesFile) {
         StrictModeWorkaround.apply();
         Map<String, Integer> map = new HashMap<>();
-        String[] hosts = TabImplJni.get().getContentFilterHosts(mNativeTab);
+        String[] hosts = TabImplJni.get().getContentFilterHosts(mNativeTab, rulesFile);
         for (int i = 0; i < hosts.length; ++i) {
-            map.put(hosts[i], TabImplJni.get().getContentFilterCountForHost(mNativeTab, hosts[i]));
+            map.put(hosts[i], TabImplJni.get().getContentFilterCountForHost(
+                mNativeTab, rulesFile, hosts[i]));
         }
         return map;
     }
@@ -1370,8 +1371,8 @@ public final class TabImpl extends ITab.Stub {
         boolean isDesktopUserAgentEnabled(long nativeTabImpl);
         void download(long nativeTabImpl, long nativeContextMenuParams);
         void destroyContextMenuParams(long contextMenuParams);
-        String[] getContentFilterHosts(long nativeTabImpl);
-        int getContentFilterCountForHost(long nativeTabImpl, String host);
+        String[] getContentFilterHosts(long nativeTabImpl, String rulesFile);
+        int getContentFilterCountForHost(long nativeTabImpl, String rulesFile, String host);
         void setContentFilterCallbackClient(long nativeTabImpl, IContentFilterCallbackClient client);
     }
 }

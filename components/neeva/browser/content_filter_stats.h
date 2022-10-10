@@ -11,12 +11,16 @@ namespace neeva {
 
 class ContentFilterStats : public content::DocumentUserData<ContentFilterStats> {
  public:
+  using HostStats = std::map<std::string /*hostname*/, int /*count*/>;
+
   ~ContentFilterStats() override;
 
-  void RecordFilteredHost(const std::string& host);
+  void RecordFilteredHost(const std::string& rules_file, const std::string& host);
 
-  const std::map<std::string, int>& data() const {
-      return hosts_to_counts_; }
+  void GetHostsForFilter(
+      const std::string& rules_file, std::vector<std::string>* hosts) const;
+  int GetHostCountsForFilter(
+      const std::string& rules_file, const std::string& host) const;
 
  private:
   explicit ContentFilterStats(content::RenderFrameHost* rfh);
@@ -24,7 +28,7 @@ class ContentFilterStats : public content::DocumentUserData<ContentFilterStats> 
   friend DocumentUserData;
   DOCUMENT_USER_DATA_KEY_DECL();
 
-  std::map<std::string, int> hosts_to_counts_;
+  std::map<std::string /*rules_file*/, HostStats> data_;
 };
 
 }  // namespace neeva

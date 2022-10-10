@@ -8,6 +8,7 @@ enum ContentFilterMode {
 };
 
 struct ContentFilterData {
+  string rules_name;
   handle<platform> rules_data_fd;
   uint64 rules_data_offset;
   uint64 rules_data_size;
@@ -20,6 +21,7 @@ struct ContentFilterRules {
 };
 
 struct ContentFilterAction {
+  string rules_name;
   string host;
 };
 
