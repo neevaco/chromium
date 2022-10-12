@@ -117,7 +117,7 @@ void ContentFilteringAgent::OnContentFiltered(
 
 ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     const GURL& url, const url::Origin& first_party_origin,
-    proto::ElementType element_type) const {
+    proto::ElementType element_type, std::string* rules_name) const {
   // NOTE: Called from any thread.
   base::AutoLock locked(rules_lock_);
 
@@ -148,6 +148,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     }
 
     // A match was found!
+    *rules_name = filter.rules_name;
     switch (rules_->mode) {
       case mojom::ContentFilterMode::BLOCK_COOKIES:
         return ContentFilteringPolicy::kBlockCookies;
@@ -201,6 +202,7 @@ void ContentFilteringAgent::OnReceiveNewRules(
           flat_rules->url_pattern_index());
       filter.css_matcher = std::make_unique<CssRuleListMatcher>(
           flat_rules->css_rule_list());
+      filter.rules_name = data->rules_name;
       filters_.push_back(std::move(filter));
     } else {
       LOG(ERROR) << "Mapping the region failed!";

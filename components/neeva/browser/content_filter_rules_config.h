@@ -26,6 +26,9 @@ namespace neeva {
 // configuration.
 class ContentFilterRulesConfig : public base::SupportsUserData::Data {
  public:
+  static const char* kValidRulesFiles[2];
+  static bool IsValidRulesFile(const std::string& rules_file);
+
   ~ContentFilterRulesConfig() override;
 
   static ContentFilterRulesConfig* Get(

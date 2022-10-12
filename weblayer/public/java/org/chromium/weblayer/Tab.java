@@ -774,13 +774,26 @@ public class Tab {
         }
     }
 
-    public Map<String, Integer> getContentFilterStats() {
+    /**
+     * Returns the set of hostnames blocked by content filtering along with the
+     * number of times the hostname was blocked.
+     *
+     * @param rulesFile optionally specifies the rules file to query (e.g., pass
+     * "easyprivacy" to see what content was blocked by the "easyprivacy" list).
+     * Use "*" to request filter stats from all rules files combined.
+     *
+     * See also ContentFilterManager.enableRulesFile.
+     */
+    public Map<String, Integer> getContentFilterStats(String rulesFile) {
         ThreadCheck.ensureOnUiThread();
         try {
-            return (Map<String, Integer>) mImpl.getContentFilterStats();
+            return (Map<String, Integer>) mImpl.getContentFilterStats(rulesFile);
         } catch (RemoteException e) {
             throw new APICallException(e);
         }
+    }
+    public Map<String, Integer> getContentFilterStats() {
+        return getContentFilterStats("*");
     }
 
     public void setContentFilterCallback(ContentFilterCallback callback) {

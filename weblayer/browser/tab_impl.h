@@ -196,8 +196,11 @@ class TabImpl : public Tab,
   void SetDesktopUserAgentEnabled(JNIEnv* env, jboolean enable);
   jboolean IsDesktopUserAgentEnabled(JNIEnv* env);
   void Download(JNIEnv* env, jlong native_context_menu_params);
-  base::android::ScopedJavaLocalRef<jobjectArray> GetContentFilterHosts(JNIEnv* env);
-  jint GetContentFilterCountForHost(JNIEnv* env, const base::android::JavaParamRef<jstring>& host);
+  base::android::ScopedJavaLocalRef<jobjectArray> GetContentFilterHosts(
+      JNIEnv* env, const base::android::JavaParamRef<jstring>& rules_file);
+  jint GetContentFilterCountForHost(
+      JNIEnv* env, const base::android::JavaParamRef<jstring>& rules_file,
+      const base::android::JavaParamRef<jstring>& host);
   void SetContentFilterCallbackClient(JNIEnv* env, const base::android::JavaParamRef<jobject>& client);
 #endif
 

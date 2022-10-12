@@ -62,7 +62,8 @@ class ContentFilteringAgent
       int32_t render_frame_id, mojom::ContentFilterActionPtr action);
   ContentFilteringPolicy GetPolicyForRequest(
       const GURL& url, const url::Origin& first_party_origin,
-      url_pattern_index::proto::ElementType element_type) const;
+      url_pattern_index::proto::ElementType element_type,
+      std::string* rules_name) const;
 
   // mojom::ContentFilterRulesListener methods:
   void OnReceiveNewRules(mojom::ContentFilterRulesPtr new_rules) override;
@@ -74,6 +75,7 @@ class ContentFilteringAgent
     Filter();
     ~Filter();
     Filter(Filter&&);
+    std::string rules_name;
     std::unique_ptr<base::MemoryMappedFile> data;
     std::unique_ptr<url_pattern_index::UrlPatternIndexMatcher> url_matcher;
     std::unique_ptr<CssRuleListMatcher> css_matcher;

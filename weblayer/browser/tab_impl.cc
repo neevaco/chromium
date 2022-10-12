@@ -941,32 +941,30 @@ void TabImpl::Download(JNIEnv* env, jlong native_context_menu_params) {
 }
 
 base::android::ScopedJavaLocalRef<jobjectArray> TabImpl::GetContentFilterHosts(
-    JNIEnv* env) {
+    JNIEnv* env, const JavaParamRef<jstring>& rules_file) {
   std::vector<std::string> hosts;
 
   auto* stats = neeva::ContentFilterStats::GetForCurrentDocument(
       web_contents_->GetPrimaryMainFrame());
   if (stats) {
-    for (const auto& it : stats->data()) {
-      hosts.push_back(it.first);
-    }
+    stats->GetHostsForFilter(
+        base::android::ConvertJavaStringToUTF8(env, rules_file), &hosts);
   }
 
   return base::android::ToJavaArrayOfStrings(env, hosts);
 }
 
 jint TabImpl::GetContentFilterCountForHost(
-    JNIEnv* env, const JavaParamRef<jstring>& host) {
+    JNIEnv* env, const JavaParamRef<jstring>& rules_file,
+    const JavaParamRef<jstring>& host) {
   int count = 0;
 
   auto* stats = neeva::ContentFilterStats::GetForCurrentDocument(
       web_contents_->GetPrimaryMainFrame());
   if (stats) {
-    auto it =
-        stats->data().find(base::android::ConvertJavaStringToUTF8(env, host));
-    if (it != stats->data().end()) {
-      count = it->second;
-    }
+    count = stats->GetHostCountsForFilter(
+        base::android::ConvertJavaStringToUTF8(env, rules_file),
+        base::android::ConvertJavaStringToUTF8(env, host));
   }
 
   return count;
