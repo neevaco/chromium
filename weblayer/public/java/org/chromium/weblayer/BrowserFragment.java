@@ -117,12 +117,12 @@ public final class BrowserFragment extends RemoteFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         onCreateInternal(savedInstanceState, null);
     }
 
     private void onCreateInternal(
             Bundle savedInstanceState, @Nullable TabListCallback tabListCallback) {
-        super.onCreate(savedInstanceState);
         if (mBrowser != null) {
             // If mBrowser is non-null, it means mBrowser came from a ViewModel.
             return;

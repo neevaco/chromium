@@ -11,7 +11,12 @@ if [ -z "$out" ]; then
 fi
 
 echo "Taking snapshot of $src"
+if [ -e "$out" ]; then 
+  echo -n "$out already exists, hit enter to delete: "
+  read continue_confirmation
+fi
 
+rm -rf $out
 mkdir -p $out
 cp $src/apks/WebLayerSupport.apk $out
 cp $src/apks/WebLayerShell.apk $out
@@ -19,7 +24,14 @@ cp $src/args.gn $out
 
 get_list_of_public_java_sources() {
   # Exclude unneeded browser sandbox code.
-  find org/chromium/weblayer -name \*.java | grep -v BrowserSandboxService.java
+  find org/chromium/weblayer -name \*.java | \
+  grep -v 'BrowserSandboxService.java' | \
+  grep -v 'BrowserFragmentDelegate.java' | \
+  grep -v 'BrowserFragmentTabDelegate.java' | \
+  grep -v 'TabNavigationControllerProxy.java' | \
+  grep -v 'TabParams.java' | \
+  grep -v 'TabProxy.java' | \
+  grep -v 'WebMessageReplyProxyProxy.java'
 }
 
 (cd $src/../../weblayer/public/java && zip -r $out/client-res.zip res)
