@@ -24,7 +24,14 @@ cp $src/args.gn $out
 
 get_list_of_public_java_sources() {
   # Exclude unneeded browser sandbox code.
-  find org/chromium/weblayer -name \*.java | egrep -v 'BrowserSandboxService.java|BrowserFragmentDelegate.java|BrowserFragmentTabDelegate.java|TabNavigationControllerProxy.java|TabParams.java|TabProxy.java|WebMessageReplyProxyProxy.java'
+  find org/chromium/weblayer -name \*.java | \
+  grep -v 'BrowserSandboxService.java' | \
+  grep -v 'BrowserFragmentDelegate.java' | \
+  grep -v 'BrowserFragmentTabDelegate.java' | \
+  grep -v 'TabNavigationControllerProxy.java' | \
+  grep -v 'TabParams.java' | \
+  grep -v 'TabProxy.java' | \
+  grep -v 'WebMessageReplyProxyProxy.java'
 }
 
 (cd $src/../../weblayer/public/java && zip -r $out/client-res.zip res)
