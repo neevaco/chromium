@@ -125,18 +125,20 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
-  // There's no point in blocking foo.com from making requests from foo.com. 
-  // Doing so can break logins or other site functionality. 
-  // We may need to do better to handle x.foo.com requesting from y.foo.com. 
-  if (first_party_origin.IsSameOriginWith(url)) {
-    return ContentFilteringPolicy::kAllow;
-  }
-
   // Apply top-level host exclusions.
   // TODO: Use a set for more efficient lookup.
   auto end = rules_->top_level_host_exclusions.end();
   if (std::find(rules_->top_level_host_exclusions.begin(), end,
                 first_party_origin.host()) != end) {
+    return ContentFilteringPolicy::kAllow;
+  }
+
+  // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
+  // Doing so can break logins or other site functionality. 
+  if (!IsThirdParty(url, first_party_origin)) {
+    if (rules_->mode == mojom::ContentFilterMode::BLOCK_COOKIES) {
+      return ContentFilteringPolicy::kBlockCookies;
+    }
     return ContentFilteringPolicy::kAllow;
   }
 
