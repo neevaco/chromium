@@ -136,7 +136,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
   // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
   // Doing so can break logins or other site functionality. 
   if (!IsThirdParty(url, first_party_origin)) {
-    // Block cookies for first-party cookies to stop them from tracking users too. 
+    // Downgrade from kBlockRequests to kBlockCookies to minimize impact on sites. 
     return ContentFilteringPolicy::kBlockCookies;
   }
 
