@@ -133,13 +133,6 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
-  // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
-  // Doing so can break logins or other site functionality. 
-  if (!IsThirdParty(url, first_party_origin)) {
-    // Downgrade from kBlockRequests to kBlockCookies to minimize impact on sites. 
-    return ContentFilteringPolicy::kBlockCookies;
-  }
-
   for (const auto& filter : filters_) {
     if (!filter.url_matcher)
       continue;
@@ -156,6 +149,13 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
 
     // A match was found!
     *rules_name = filter.rules_name;
+    // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
+    // Doing so can break logins or other site functionality. 
+    if (!IsThirdParty(url, first_party_origin)) {
+      // Downgrade from kBlockRequests to kBlockCookies to minimize impact on sites. 
+      return ContentFilteringPolicy::kBlockCookies;
+    }
+
     switch (rules_->mode) {
       case mojom::ContentFilterMode::BLOCK_COOKIES:
         return ContentFilteringPolicy::kBlockCookies;
