@@ -136,10 +136,8 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
   // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
   // Doing so can break logins or other site functionality. 
   if (!IsThirdParty(url, first_party_origin)) {
-    if (rules_->mode == mojom::ContentFilterMode::BLOCK_COOKIES) {
-      return ContentFilteringPolicy::kBlockCookies;
-    }
-    return ContentFilteringPolicy::kAllow;
+    // Block cookies for first-party cookies to stop them from tracking users too. 
+    return ContentFilteringPolicy::kBlockCookies;
   }
 
   for (const auto& filter : filters_) {
