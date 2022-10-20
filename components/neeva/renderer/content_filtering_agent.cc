@@ -133,6 +133,8 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
+  bool isUrlThirdParty = IsThirdParty(url, first_party_origin);
+
   for (const auto& filter : filters_) {
     if (!filter.url_matcher)
       continue;
@@ -140,7 +142,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     if (!filter.url_matcher->FindMatch(
             url, first_party_origin, element_type,
             proto::ACTIVATION_TYPE_UNSPECIFIED,
-            IsThirdParty(url, first_party_origin),
+            isUrlThirdParty,
             false,
             UrlPatternIndexMatcher::EmbedderConditionsMatcher(),
             UrlPatternIndexMatcher::FindRuleStrategy::kAny)) {
@@ -149,6 +151,13 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
 
     // A match was found!
     *rules_name = filter.rules_name;
+    // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
+    // Doing so can break logins or other site functionality. 
+    if (!isUrlThirdParty) {
+      // Downgrade from kBlockRequests to kBlockCookies to minimize impact on sites. 
+      return ContentFilteringPolicy::kBlockCookies;
+    }
+
     switch (rules_->mode) {
       case mojom::ContentFilterMode::BLOCK_COOKIES:
         return ContentFilteringPolicy::kBlockCookies;
