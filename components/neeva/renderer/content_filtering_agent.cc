@@ -133,7 +133,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
-  bool isUrlThirdParty = IsThirdParty(url, first_party_origin);
+  bool is_url_third_party = IsThirdParty(url, first_party_origin);
 
   for (const auto& filter : filters_) {
     if (!filter.url_matcher)
@@ -142,7 +142,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     if (!filter.url_matcher->FindMatch(
             url, first_party_origin, element_type,
             proto::ACTIVATION_TYPE_UNSPECIFIED,
-            isUrlThirdParty,
+            is_url_third_party,
             false,
             UrlPatternIndexMatcher::EmbedderConditionsMatcher(),
             UrlPatternIndexMatcher::FindRuleStrategy::kAny)) {
@@ -153,7 +153,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     *rules_name = filter.rules_name;
     // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
     // Doing so can break logins or other site functionality. 
-    if (!isUrlThirdParty) {
+    if (!is_url_third_party) {
       // Downgrade from kBlockRequests to kBlockCookies to minimize impact on sites. 
       return ContentFilteringPolicy::kBlockCookies;
     }
