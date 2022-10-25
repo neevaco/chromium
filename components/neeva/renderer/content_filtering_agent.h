@@ -85,8 +85,8 @@ class ContentFilteringAgent
   void DeleteOnCorrectThread() const;
 
   scoped_refptr<base::SequencedTaskRunner> task_runner_;
+  
   mojo::Remote<mojom::ContentFilteringService> service_;
-
   mojo::Receiver<mojom::ContentFilterRulesListener> receiver_{this};
 
   // Acquire |rules_lock_| before accessing any of the following fields.

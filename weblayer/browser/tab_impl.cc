@@ -975,6 +975,7 @@ void TabImpl::SetContentFilterCallbackClient(
   if (client) {
     base::android::ScopedJavaGlobalRef<jobject> scoped_client(client);
     neeva::ContentFilterClient::GetOrCreate(web_contents_.get())->set_callback(
+      // Look at TabImpl.java
         base::BindRepeating(
             [](JNIEnv* env, base::android::ScopedJavaGlobalRef<jobject> client) {
               Java_TabImpl_runContentFilterCallback(env, client);
@@ -982,6 +983,7 @@ void TabImpl::SetContentFilterCallbackClient(
             base::Unretained(env), std::move(scoped_client)
         ));
   } else {
+    // Run the dummy callback (it will do nothing since we do not have a client)
     neeva::ContentFilterClient::GetOrCreate(web_contents_.get())->set_callback(
         base::RepeatingClosure());
   }

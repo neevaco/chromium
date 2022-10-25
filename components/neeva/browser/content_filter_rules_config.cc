@@ -46,6 +46,7 @@ ContentFilterRulesConfig* ContentFilterRulesConfig::GetOrCreate(
   auto* config = Get(browser_context);
   if (!config) {
     config = new ContentFilterRulesConfig();
+     // Ties the lifecycle of a RulesConfig with 1 browser context (aka. like a profile - cookies, etc.)
     browser_context->SetUserData(&kUserDataKey, base::WrapUnique(config));
   }
   return config;
@@ -99,6 +100,7 @@ void ContentFilterRulesConfig::StopFiltering() {
   ConfigChanged();
 }
 
+// Invoked in content_filtering_service.cc
 void ContentFilterRulesConfig::AddListener(
     mojo::PendingRemote<mojom::ContentFilterRulesListener> remote) {
   auto listener_id = listeners_.Add(std::move(remote));

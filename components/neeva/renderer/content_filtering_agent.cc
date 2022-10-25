@@ -51,11 +51,19 @@ std::unique_ptr<base::MemoryMappedFile> MapRegion(
 ContentFilteringAgent::ContentFilteringAgent(
     blink::ThreadSafeBrowserInterfaceBrokerProxy* broker)
     : task_runner_(base::SequencedTaskRunnerHandle::Get()) {
+
+  // Binds the service as a remote and creates a pipe to the Browser.
+  // See ContentFilteringService::AddInterface() for the handling of the reciever part. 
+  // @Darin why is the Browser broker when registering the Renderer service pipe??
   broker->GetInterface(service_.BindNewPipeAndPassReceiver());
 
+  // Allows the ContentFilterConfig to call OnReceiveNewRules() and 
+  // for the service to "receive" those callbacks. 
   service_->AddRulesListener(receiver_.BindNewPipeAndPassRemote());
 }
 
+// Creates ContentFilter objects. 
+// Gets called by WebLayer (weblayer/renderer/url_loader_throttle_provider.cc) 
 std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
     int render_frame_id, const blink::WebURLRequest& request) {
   return std::make_unique<ContentFilter>(
@@ -105,6 +113,7 @@ void ContentFilteringAgent::RunScriptsAtDocumentStart(
 
 void ContentFilteringAgent::OnContentFiltered(
     int32_t render_frame_id, mojom::ContentFilterActionPtr action) {
+  // Any actions/communication to mojom ContentFilterService must be ran on the same thread as the agent/service.
   if (task_runner_->RunsTasksInCurrentSequence()) {
     service_->OnContentFiltered(render_frame_id, std::move(action));
   } else {

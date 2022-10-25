@@ -12,6 +12,7 @@
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list.h"
 #include "base/supports_user_data.h"
+// @Darin how did you generate this??
 #include "components/neeva/common/content_filtering_service.mojom.h"
 #include "mojo/public/cpp/bindings/remote_set.h"
 #include "mojo/public/cpp/system/buffer.h"
@@ -23,7 +24,8 @@ class BrowserContext;
 namespace neeva {
 
 // Stored on each content::BrowserContext and holds the current rules
-// configuration.
+// configuration. This is the controller the Browser process can use 
+// to adjust filter rules in the Renderer process. 
 class ContentFilterRulesConfig : public base::SupportsUserData::Data {
  public:
   static const char* kValidRulesFiles[2];

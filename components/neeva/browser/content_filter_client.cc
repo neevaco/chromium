@@ -26,6 +26,10 @@ ContentFilterClient* ContentFilterClient::GetOrCreate(
     content::WebContents* web_contents) {
   auto* client = Get(web_contents);
   if (!client) {
+    // GetOrCreateForCurrentDocument() takes care of memory management 
+    // by tying the ContentFilterStats's lifecycle to be cleaned up too 
+    // when the document dies.
+    // Great for modularity + life cycle tracking!
     client = new ContentFilterClient(); 
     web_contents->SetUserData(&kUserDataKey, base::WrapUnique(client));
   }
@@ -35,7 +39,6 @@ ContentFilterClient* ContentFilterClient::GetOrCreate(
 void ContentFilterClient::Notify() {
   // Run callback asynchronously and skip any notifications that come in while
   // we are waiting to run the callback. This helps avoid spammy notifications.
-
   if (!callback_ || callback_pending_)
     return;
   callback_pending_ = true;

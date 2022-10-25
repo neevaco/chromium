@@ -22,12 +22,13 @@ ContentFilteringService::ContentFilteringService(int render_process_id)
 ContentFilteringService::~ContentFilteringService() = default;
 
 // static
+// Creates the Service. Called in weblayer/browser/content_browser_client_impl.cc
 void ContentFilteringService::AddInterface(
     service_manager::BinderRegistry* registry, int render_process_id) {
   auto create_service =
       [](int render_process_id,
          mojo::PendingReceiver<mojom::ContentFilteringService> receiver) {
-        mojo::MakeSelfOwnedReceiver(
+        mojo::MakeSelfOwnedReceiver( // observes if the pipe is broken and cleans it up if it is
             std::make_unique<ContentFilteringService>(render_process_id),
             std::move(receiver));
       };
@@ -36,6 +37,7 @@ void ContentFilteringService::AddInterface(
       content::GetUIThreadTaskRunner({}));
 }
 
+// Called by renderer/content_filtering_agent constructor
 void ContentFilteringService::AddRulesListener(
     mojo::PendingRemote<mojom::ContentFilterRulesListener> remote) {
   auto* rph = content::RenderProcessHost::FromID(render_process_id_);
@@ -43,6 +45,9 @@ void ContentFilteringService::AddRulesListener(
     LOG(ERROR) << "No RenderProcessHost for ID";
     return;
   }
+  // Note that unlike AddInterface (above), this is given only a remote.
+  // The renderer only cares about new rule updates
+  // Also ties the lifecycle of a ContentFilterRulesConfig with 1 browser context. 
   ContentFilterRulesConfig::GetOrCreate(rph->GetBrowserContext())->AddListener(
       std::move(remote));
 }
@@ -56,14 +61,17 @@ void ContentFilteringService::OnContentFiltered(
     return;
   }
   rfh = rfh->GetMainFrame();
-
+  
+  // Updates ContentFilterStats
   ContentFilterStats::GetOrCreateForCurrentDocument(rfh)->RecordFilteredHost(
       action->rules_name, action->host);
 
+  // Notify the browser that new ContentFilterStats are ready. 
   auto* web_contents = content::WebContents::FromRenderFrameHost(rfh);
   if (web_contents) {
     auto* client = ContentFilterClient::Get(web_contents);
-    if (client) {
+    // Get the client (aka. browserContext)
+    if (client) { // if exists -> tell it OnContentFiltered()
       client->Notify();
     }
   }

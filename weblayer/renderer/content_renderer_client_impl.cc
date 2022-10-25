@@ -96,9 +96,14 @@ void ContentRendererClientImpl::RenderThreadStarted() {
   weblayer_observer_ = std::make_unique<WebLayerRenderThreadObserver>();
   thread->AddObserver(weblayer_observer_.get());
 
+  // Broker is important for IPC (because render processes are heavily sandboxed.)
   browser_interface_broker_ =
       blink::Platform::Current()->GetBrowserInterfaceBroker();
 
+  // Ties life cycle of the agent to the BrowserInterfaceBroker. 
+  // This is important because the broker part of the Browser Process.
+  // Since there can be mulitple Render processes that get created and die,
+  // a singleton able to survive that needs to be tied to the Browser Process. 
   neeva_content_filtering_agent_ =
       base::MakeRefCounted<neeva::ContentFilteringAgent>(
           browser_interface_broker_.get());
