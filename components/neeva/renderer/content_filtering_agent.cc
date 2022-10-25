@@ -157,13 +157,12 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
             UrlPatternIndexMatcher::FindRuleStrategy::kAny)) {
       continue;
     }
-
     // A match was found!
     *rules_name = filter.rules_name;
     // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
     // Doing so can break logins or other site functionality. 
     if (!is_url_third_party) {
-      // Downgrade from kBlockRequests to kBlockCookies to minimize impact on sites. 
+      // Downgrade from kBlockRequests or kBlockCookies to kAllow minimize impact on first-party-origin sites. 
       return ContentFilteringPolicy::kBlockCookies;
     }
 
