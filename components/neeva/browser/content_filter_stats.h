@@ -9,7 +9,6 @@
 
 namespace neeva {
 
-// DocumentUserData: a datatype that is designed to be attached to the lifecycle of a document!!
 class ContentFilterStats : public content::DocumentUserData<ContentFilterStats> {
  public:
   using HostStats = std::map<std::string /*hostname*/, int /*count*/>;

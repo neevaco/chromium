@@ -52,9 +52,7 @@ ContentFilteringAgent::ContentFilteringAgent(
     blink::ThreadSafeBrowserInterfaceBrokerProxy* broker)
     : task_runner_(base::SequencedTaskRunnerHandle::Get()) {
 
-  // Binds the service as a remote and creates a pipe to the Browser.
   // See ContentFilteringService::AddInterface() for the handling of the reciever part. 
-  // @Darin why is the Browser broker when registering the Renderer service pipe??
   broker->GetInterface(service_.BindNewPipeAndPassReceiver());
 
   // Allows the ContentFilterConfig to call OnReceiveNewRules() and 
@@ -113,7 +111,8 @@ void ContentFilteringAgent::RunScriptsAtDocumentStart(
 
 void ContentFilteringAgent::OnContentFiltered(
     int32_t render_frame_id, mojom::ContentFilterActionPtr action) {
-  // Any actions/communication to mojom ContentFilterService must be ran on the same thread as the agent/service.
+  // Any actions/communication to mojom ContentFilterService must be 
+  // ran on the same thread as the agent/service.
   if (task_runner_->RunsTasksInCurrentSequence()) {
     service_->OnContentFiltered(render_frame_id, std::move(action));
   } else {
@@ -157,6 +156,7 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
             UrlPatternIndexMatcher::FindRuleStrategy::kAny)) {
       continue;
     }
+
     // A match was found!
     *rules_name = filter.rules_name;
     // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
