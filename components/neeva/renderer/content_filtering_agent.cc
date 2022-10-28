@@ -56,8 +56,6 @@ ContentFilteringAgent::ContentFilteringAgent(
   service_->AddRulesListener(receiver_.BindNewPipeAndPassRemote());
 }
 
-// Creates ContentFilter objects. 
-// Gets called by WebLayer (weblayer/renderer/url_loader_throttle_provider.cc) 
 std::unique_ptr<blink::URLLoaderThrottle> ContentFilteringAgent::CreateThrottle(
     int render_frame_id, const blink::WebURLRequest& request) {
   return std::make_unique<ContentFilter>(
