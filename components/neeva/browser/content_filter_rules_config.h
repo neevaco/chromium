@@ -23,7 +23,8 @@ class BrowserContext;
 namespace neeva {
 
 // Stored on each content::BrowserContext and holds the current rules
-// configuration.
+// configuration. This is the controller the Browser process can use 
+// to adjust filter rules in the Renderer process. 
 class ContentFilterRulesConfig : public base::SupportsUserData::Data {
  public:
   static const char* kValidRulesFiles[2];

@@ -982,6 +982,7 @@ void TabImpl::SetContentFilterCallbackClient(
             base::Unretained(env), std::move(scoped_client)
         ));
   } else {
+    // Run the dummy callback (it will do nothing since we do not have a client)
     neeva::ContentFilterClient::GetOrCreate(web_contents_.get())->set_callback(
         base::RepeatingClosure());
   }

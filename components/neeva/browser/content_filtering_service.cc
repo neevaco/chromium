@@ -24,6 +24,7 @@ ContentFilteringService::~ContentFilteringService() = default;
 // static
 void ContentFilteringService::AddInterface(
     service_manager::BinderRegistry* registry, int render_process_id) {
+  // Create an instance of ContentFilteringService per renderer.
   auto create_service =
       [](int render_process_id,
          mojo::PendingReceiver<mojom::ContentFilteringService> receiver) {
@@ -56,10 +57,12 @@ void ContentFilteringService::OnContentFiltered(
     return;
   }
   rfh = rfh->GetMainFrame();
-
+  
+  // Updates ContentFilterStats
   ContentFilterStats::GetOrCreateForCurrentDocument(rfh)->RecordFilteredHost(
       action->rules_name, action->host);
 
+  // Notify the browser that new ContentFilterStats are ready. 
   auto* web_contents = content::WebContents::FromRenderFrameHost(rfh);
   if (web_contents) {
     auto* client = ContentFilterClient::Get(web_contents);

@@ -46,6 +46,7 @@ ContentFilterRulesConfig* ContentFilterRulesConfig::GetOrCreate(
   auto* config = Get(browser_context);
   if (!config) {
     config = new ContentFilterRulesConfig();
+     // Ties the lifecycle of config with browser_context.
     browser_context->SetUserData(&kUserDataKey, base::WrapUnique(config));
   }
   return config;

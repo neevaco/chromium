@@ -105,6 +105,8 @@ void ContentFilteringAgent::RunScriptsAtDocumentStart(
 
 void ContentFilteringAgent::OnContentFiltered(
     int32_t render_frame_id, mojom::ContentFilterActionPtr action) {
+  // Any actions/communication to mojom ContentFilterService must be 
+  // ran on the same thread as the agent/service.
   if (task_runner_->RunsTasksInCurrentSequence()) {
     service_->OnContentFiltered(render_frame_id, std::move(action));
   } else {

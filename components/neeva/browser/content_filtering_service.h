@@ -8,6 +8,8 @@
 
 namespace neeva {
 
+// For every Renderer process, a ContentFilteringService will be constructed and tied to it. 
+// Communicates with the ContentFilterConfig through its interfaces. 
 class ContentFilteringService : public mojom::ContentFilteringService {
  public:
   explicit ContentFilteringService(int render_process_id);

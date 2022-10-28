@@ -25,15 +25,18 @@ struct ContentFilterAction {
   string host;
 };
 
+// Implemented by each Renderer (Browser sending callbacks)
 interface ContentFilterRulesListener {
   OnReceiveNewRules(ContentFilterRules? rules);
 };
 
+// Implemented by the Browser (Renderer sending these callbacks)
 interface ContentFilteringService {
   AddRulesListener(pending_remote<ContentFilterRulesListener> listener);
 
-  // When a child process filters content, it calls OnContentFiltered to let the
-  // service know about it. `render_frame_id` identifies the frame in which content
+  // When a child (renderer) process filters content, it calls OnContentFiltered to 
+  // let the service know about it. 
+  // `render_frame_id` identifies the frame in which content
   // was blocked and `action` indicates what was blocked. (The service can map the
   // render_frame_id to the corresponding tab.)
   OnContentFiltered(int32 render_frame_id, ContentFilterAction action);

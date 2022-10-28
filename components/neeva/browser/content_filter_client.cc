@@ -27,6 +27,7 @@ ContentFilterClient* ContentFilterClient::GetOrCreate(
   auto* client = Get(web_contents);
   if (!client) {
     client = new ContentFilterClient(); 
+    // client's lifecycle is now tied to the browser's web_contents.
     web_contents->SetUserData(&kUserDataKey, base::WrapUnique(client));
   }
   return client;
