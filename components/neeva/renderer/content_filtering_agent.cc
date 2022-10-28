@@ -127,6 +127,14 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
+  bool is_url_third_party = IsThirdParty(url, first_party_origin);
+  // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
+  // Doing so can break logins or other site functionality. 
+  if (!is_url_third_party) {
+    // Downgrade from kBlockRequests or kBlockCookies to kAllow minimize impact on first-party-origin sites.
+    return ContentFilteringPolicy::kAllow;
+  }
+
   // Apply top-level host exclusions.
   // TODO: Use a set for more efficient lookup.
   auto end = rules_->top_level_host_exclusions.end();
@@ -135,7 +143,6 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
     return ContentFilteringPolicy::kAllow;
   }
 
-  bool is_url_third_party = IsThirdParty(url, first_party_origin);
 
   for (const auto& filter : filters_) {
     if (!filter.url_matcher)
@@ -153,12 +160,6 @@ ContentFilteringPolicy ContentFilteringAgent::GetPolicyForRequest(
 
     // A match was found!
     *rules_name = filter.rules_name;
-    // There's no point in blocking foo.com from making requests from first-party origins (e.g. foo.com). 
-    // Doing so can break logins or other site functionality. 
-    if (!is_url_third_party) {
-      // Downgrade from kBlockRequests to kBlockCookies to minimize impact on sites. 
-      return ContentFilteringPolicy::kBlockCookies;
-    }
 
     switch (rules_->mode) {
       case mojom::ContentFilterMode::BLOCK_COOKIES:
