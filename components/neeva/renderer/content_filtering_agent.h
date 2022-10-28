@@ -84,7 +84,7 @@ class ContentFilteringAgent
   ~ContentFilteringAgent() override;
   void DeleteOnCorrectThread() const;
 
-  scoped_refptr<base::SequencedTaskRunner> task_runner_;SS
+  scoped_refptr<base::SequencedTaskRunner> task_runner_;
   mojo::Remote<mojom::ContentFilteringService> service_;
 
   mojo::Receiver<mojom::ContentFilterRulesListener> receiver_{this};
