@@ -51,12 +51,8 @@ std::unique_ptr<base::MemoryMappedFile> MapRegion(
 ContentFilteringAgent::ContentFilteringAgent(
     blink::ThreadSafeBrowserInterfaceBrokerProxy* broker)
     : task_runner_(base::SequencedTaskRunnerHandle::Get()) {
-
-  // See ContentFilteringService::AddInterface() for the handling of the reciever part. 
   broker->GetInterface(service_.BindNewPipeAndPassReceiver());
 
-  // Allows the ContentFilterConfig to call OnReceiveNewRules() and 
-  // for the service to "receive" those callbacks. 
   service_->AddRulesListener(receiver_.BindNewPipeAndPassRemote());
 }
 

@@ -99,7 +99,6 @@ void ContentRendererClientImpl::RenderThreadStarted() {
   browser_interface_broker_ =
       blink::Platform::Current()->GetBrowserInterfaceBroker();
 
-  // Ties life cycle of the agent to the ContentRendererClientImpl. 
   neeva_content_filtering_agent_ =
       base::MakeRefCounted<neeva::ContentFilteringAgent>(
           browser_interface_broker_.get());

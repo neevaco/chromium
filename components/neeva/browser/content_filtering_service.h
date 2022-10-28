@@ -15,7 +15,6 @@ class ContentFilteringService : public mojom::ContentFilteringService {
   explicit ContentFilteringService(int render_process_id);
   ~ContentFilteringService() override;
 
-  // Called in weblayer/browser/content_browser_client_impl.cc
   static void AddInterface(
       service_manager::BinderRegistry* registry, int render_process_id);
 

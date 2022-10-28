@@ -100,7 +100,6 @@ void ContentFilterRulesConfig::StopFiltering() {
   ConfigChanged();
 }
 
-// Invoked in content_filtering_service.cc
 void ContentFilterRulesConfig::AddListener(
     mojo::PendingRemote<mojom::ContentFilterRulesListener> remote) {
   auto listener_id = listeners_.Add(std::move(remote));

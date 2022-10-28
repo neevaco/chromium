@@ -22,7 +22,6 @@ class ContentFilterClient : public base::SupportsUserData::Data {
   static ContentFilterClient* Get(content::WebContents* web_contents);
   static ContentFilterClient* GetOrCreate(content::WebContents* web_contents);
 
-  // Called in tab_impl.cc, see: TabImpl::SetContentFilterCallbackClient()
   void set_callback(base::RepeatingClosure callback) { callback_ = callback; }
   void Notify();
 

@@ -55,7 +55,6 @@ class ContentFilteringAgent
   std::unique_ptr<blink::URLLoaderThrottle> CreateThrottle(
       int render_frame_id, const blink::WebURLRequest& request);
 
-  // Called in content_renderer_client_impl.cc
   void RunScriptsAtDocumentStart(content::RenderFrame* render_frame);
 
   // The following methods may be called on a background thread.
